@@ -1,0 +1,90 @@
+
+IDIR      = ..\include
+GLOB_IDIR = ..\thirdparty\szx\glob
+
+# target (executable and library base filename)
+TARGET_NAME   = nfir
+
+#  sources
+SRC_DIR       = ..\src
+SRC_BIN_DIR   = $(SRC_DIR)\bin
+SRC_BIN_FILES = $(SRC_BIN_DIR)\*.cpp
+SRC_BIN_FNAME = $(SRC_BIN_DIR)\$(TARGET_NAME).cpp
+SRC_LIB_DIR   = $(SRC_DIR)\lib
+SRC_LIB_FILES = $(SRC_LIB_DIR)\*.cpp
+GLOB_SRC_DIR  = $(GLOB_IDIR)
+SRC_GLOB_FNAME = $(GLOB_SRC_DIR)\glob_win32.cpp
+
+
+# OpenCV 3.4.5
+OPENCV_LIBS=$(OPENCV_LIBSDIR)\opencv_world345.lib
+
+# OpenCV 2.4.13
+#OPENCV_LIBS=$(OPENCV_LIBSDIR)\opencv_core2413.lib $(OPENCV_LIBSDIR)\opencv_imgproc2413.lib $(OPENCV_LIBSDIR)\opencv_highgui2413.lib
+
+
+#  objects
+OBJ_DIR     = ..\obj
+OBJ_BIN_DIR = $(OBJ_DIR)\bin
+OBJ_LIB_DIR = $(OBJ_DIR)\lib
+MAIN_OBJ    = $(OBJ_BIN_DIR)\$(TARGET_NAME).obj
+GLOB_OBJ    = $(OBJ_LIB_DIR)\glob_win32.obj
+LIB_OBJ     = $(OBJ_LIB_DIR)\$(TARGET_NAME)_lib.obj
+OBJ_BIN_FILES = $(OBJ_BIN_DIR)\*.obj
+OBJ_LIB_FILES = $(OBJ_LIB_DIR)\*.obj
+
+
+#  targets
+LIB_DIR = ..\lib
+BIN_DIR = ..\bin
+TARGET_BIN     = $(BIN_DIR)\$(TARGET_NAME).exe
+TARGET_LIB_DIR = $(LIB_DIR)\static
+TARGET_STATIC_LIB=$(TARGET_LIB_DIR)\$(TARGET_NAME).lib
+
+
+# Specify compiler
+CC=cl.exe
+CFLAGS=/c /EHsc /WX /D_WIN32_64 /nologo
+
+# Specify linker
+LINK_LIB=lib.exe
+LINK=link.exe
+
+
+
+$(TARGET_BIN) : $(TARGET_STATIC_LIB)
+	@echo BUILD binary...
+	$(LINK) $(OBJ_BIN_FILES) $(TARGET_STATIC_LIB) $(OPENCV_LIBS) -out:$@
+	@echo SUCCESS !
+
+$(TARGET_STATIC_LIB) : $(LIB_OBJ) $(GLOB_OBJ) $(MAIN_OBJ)
+	@echo BUILD static lib...
+	$(LINK_LIB) $(OBJ_LIB_DIR)\*.obj /ignore:4006 -out:$@
+
+$(LIB_OBJ) : $(SRC_LIB_FILES)
+	$(CC) $(CFLAGS) /Fo$(OBJ_LIB_DIR)\ /I$(IDIR) /I$(OPENCV_INCDIR) $**
+
+$(GLOB_OBJ) : $(SRC_GLOB_FNAME)
+	$(CC) $(CFLAGS) /Fo$(OBJ_LIB_DIR)\ /I$(GLOB_IDIR) $**
+
+$(MAIN_OBJ) : $(SRC_BIN_FILES)
+	$(CC) $(CFLAGS) /Fo$(OBJ_BIN_DIR)\ /I$(IDIR) /I$(OPENCV_INCDIR) /I$(GLOB_IDIR) $**
+
+
+
+
+.PHONY: makedirs
+makedirs:
+	-@ if NOT EXIST $(BIN_DIR) mkdir $(BIN_DIR)
+	-@ if NOT EXIST $(TARGET_LIB_DIR) mkdir $(TARGET_LIB_DIR)
+	-@ if NOT EXIST $(OBJ_LIB_DIR) mkdir $(OBJ_LIB_DIR)
+	-@ if NOT EXIST $(OBJ_BIN_DIR) mkdir $(OBJ_BIN_DIR)
+
+#.PHONY : clean
+clean : remove
+    del $(OBJ_BIN_FILES)
+    del $(OBJ_LIB_FILES)
+    del $(TARGET_STATIC_LIB)
+
+remove :
+    del $(TARGET_BIN)

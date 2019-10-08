@@ -1,0 +1,102 @@
+#!/bin/bash
+
+IDIR      := ../include
+GLOB_IDIR := ../thirdparty/szx/glob
+
+OPENCV_LIBS := $(shell pkg-config --libs opencv)
+OPENCV_HDRS := $(shell pkg-config --cflags opencv)
+
+CC := g++
+CC_VERSION := gnu++11
+
+# compiler flags
+CFLAGS := -std=$(CC_VERSION) -Wall -I$(IDIR) -I$(GLOB_IDIR) -I$(OPENCV_HDRS)
+CFLAGS_GLOB := -std=$(CC_VERSION) -I$(GLOB_IDIR)
+
+LINKER := g++
+LFLAGS := -Wall
+
+ARCHIVER := ar
+
+MKDIR_P  := mkdir -p
+RM       := rm -f
+
+
+
+#  sources (dependencies)
+BIN_FNAME := nfir
+SRC_DIR   := ../src
+SRC_BIN_DIR  := $(SRC_DIR)/bin
+SRC_LIB_DIR  := $(SRC_DIR)/lib
+MAIN_SRC     := $(SRC_BIN_DIR)/$(BIN_FNAME).cpp
+GLOB_SRC_DIR := ../thirdparty/szx/glob
+GLOB_SRC := $(GLOB_SRC_DIR)/glob_posix.cpp
+BIN_SRC  := $(wildcard $(SRC_BIN_DIR)/*.cpp)
+LIB_SRC  := $(wildcard $(SRC_LIB_DIR)/*.cpp)
+
+
+#  targets
+OBJ_DIR     := ../obj
+OBJ_LIB_DIR := $(OBJ_DIR)/lib
+OBJ_BIN_DIR := $(OBJ_DIR)/bin
+BIN_OBJS := $(BIN_SRC:$(SRC_BIN_DIR)/%.cpp=$(OBJ_BIN_DIR)/%.o)
+MAIN_OBJ := $(OBJ_BIN_DIR)/$(BIN_FNAME).o
+GLOB_OBJ := $(OBJ_LIB_DIR)/glob_posix.o
+LIB_OBJS := $(LIB_SRC:$(SRC_LIB_DIR)/%.cpp=$(OBJ_LIB_DIR)/%.o)
+
+LIB_DIR := ../lib
+BIN_DIR := ../bin
+TARGET_NAME    := nfir
+TARGET_BIN     := $(BIN_DIR)/$(TARGET_NAME)
+TARGET_LIB_DIR := $(LIB_DIR)/static
+TARGET_STATIC_LIB := $(TARGET_LIB_DIR)/lib$(TARGET_NAME).a
+
+
+
+$(TARGET_BIN) : $(TARGET_STATIC_LIB)
+	@echo "BUILD binary..."
+	$(CC) $(BIN_OBJS) -L$(TARGET_LIB_DIR) -l$(TARGET_NAME) $(LFLAGS) -o $(BIN_DIR)/$(TARGET_NAME) $(OPENCV_LIBS)
+	@echo "SUCCESS !"
+
+
+$(TARGET_STATIC_LIB) : $(LIB_OBJS) $(GLOB_OBJ) $(BIN_OBJS)
+	@echo "ARCHIVE..."
+	$(ARCHIVER) rcs $(TARGET_STATIC_LIB) $(wildcard $(OBJ_LIB_DIR)/*.o)
+
+
+$(LIB_OBJS): $(OBJ_LIB_DIR)/%.o : $(SRC_LIB_DIR)/%.cpp
+	$(CC) -c $< -o $@ $(CFLAGS)
+	@echo "Compiled "$<" successfully!"
+
+
+$(GLOB_OBJ): $(GLOB_SRC)
+	$(CC) -c $< -o $@ $(CFLAGS_GLOB)
+	@echo "Compiled "$<" successfully!"
+
+
+$(BIN_OBJS): $(OBJ_BIN_DIR)/%.o : $(SRC_BIN_DIR)/%.cpp
+	$(CC) -c $< -o $@ $(CFLAGS)
+	@echo "Compiled "$<" successfully!"
+
+
+
+.PHONY: makedirs
+makedirs:
+	if [ ! -d $(BIN_DIR) ];	then \
+		$(MKDIR_P) $(BIN_DIR); \
+	fi;
+	if [ ! -d $(TARGET_LIB_DIR) ]; then \
+		$(MKDIR_P) $(TARGET_LIB_DIR); \
+	fi;
+	if [ ! -d $(OBJ_LIB_DIR) ]; then \
+		$(MKDIR_P) $(OBJ_LIB_DIR); \
+	fi;
+	if [ ! -d $(OBJ_BIN_DIR) ]; then \
+		$(MKDIR_P) $(OBJ_BIN_DIR); \
+	fi;
+
+
+.PHONY: clean
+clean:
+	@$(RM) $(OBJ_BIN_DIR)/*.o $(OBJ_LIB_DIR)/*.o $(GLOB_OBJ) $(TARGET_BIN) $(TARGET_STATIC_LIB)
+	@echo "Cleanup complete!"
