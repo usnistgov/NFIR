@@ -78,7 +78,7 @@ For any other source sample rate (ie, not in Table 2 or 3), it is STRONGLY SUGGE
 
 ### How to Build
 #### Windows
-Windows build utilizes the free Visual Studio command line tools, specifically `nmake` and c++ build tools.
+Windows build utilizes the free, Microsoft, Visual Studio command line tools, specifically `nmake` and c++ build tools.
 
 See file README_build.md for more details.
 
