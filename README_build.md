@@ -50,20 +50,12 @@ Run make as follows:
 
 
 # Check Build OK
-Check `./NFIR/bin` and `./NFIR/lib/static` dir:
+Run `export LD_LIBRARY_PATH=OCV_LIB_PATH:$LD_LIBRARY_PATH` where `OCV_LIB_PATH=output of the pkg-config --libs opencv` command.
 
 <pre><code>
-./NFIR/bin$ ll nfir
- 
--rwxrwxrwx 1 user user   791720 Sep 17 08:52 nfir*
-
-./NFIR/lib/static$ ll nfir.lib
-
--rwxrwxrwx 1 user user 480958 Sep 17 08:52 libnfir.a*
-
 ./NFIR/bin$ ./nfir -v
 NFIR (NIST Fingerprint Image Resampler) version: 0.1.0
-OpenCV version: 3.4.3
+OpenCV version: 4.4.0
 </code></pre>
 
 
@@ -72,36 +64,26 @@ Visual Studio 2017 was used to build the **NFIR**.  Start here to download the i
 
 After installation of the installer, run it to install the Visual C++ build tools including Windows 10 SDK, CMake, and Redistributable Update.  Once complete, open a `x64 Native Tools Command Prompt for VS 2017` window and navigate to the `build` directory under this distribution.
 
+
 ### OpenCV
-For windows, it is not necessary to build the development and runtime libraries.  Navigate to https://opencv.org/releases/, click the desired version link to download the installer file, for example, `opencv-3.4.5-vc14_vc15.exe`.  Run the installer to save the libraries.
+For windows, it is not necessary to build the development and runtime libraries.  Navigate to https://opencv.org/releases/, click the desired version link to download the installer file, for example, `opencv-4.4.0-vc14_vc15.exe`.  Run the installer to extract the development and runtime libraries. (Optional: rename the extracted `opencv` root dir to one reflecting the OpenCV version, eg, `opencv-4.4.0`).
 
-Paths to the OpenCV library are specified either on the command line or the Makefile.  The Makefile.win64 variable OPENCV_LIBS must be uncommented.  For example, if the OpenCV 2.4.x library files are installed in the `D:\OpenCV\opencv_24136` root, then uncomment the `OPENCV_LIBS=$(OPENCV_LIBSDIR)\opencv_core2413.lib $(OPENCV_LIBSDIR)\opencv_imgproc2413.lib $(OPENCV_LIBSDIR)\opencv_highgui2413.lib` variable in the Makefile and run the command line build as below:
-
-```
-.\NFIR\build> nmake OPENCV_INCDIR=D:\OpenCV\opencv_24136\build\include OPENCV_LIBSDIR=D:\OpenCV\opencv_24136\build\x64\vc14\lib -f Makefile.win64
-```
-
-If the OpenCV 3.4.x library files are installed in the `D:\OpenCV\opencv_345` root, then uncomment the `OPENCV_LIBS=$(OPENCV_LIBSDIR)\opencv_world345.lib` variable in the Makefile and run the command line build:
+Paths to the OpenCV library are specified in Makefile:
 
 ```
-.\NFIR\build> nmake OPENCV_INCDIR=D:\OpenCV\opencv_345\build\include OPENCV_LIBSDIR=D:\OpenCV\opencv_345\build\x64\vc14\lib -f Makefile.win64
+# OpenCV 4.4.0
+OPENCV_INCDIR = D:\OpenCV\opencv-4.4.0\build\include
+OPENCV_LIBS   = D:\OpenCV\opencv-4.4.0\build\x64\vc15\lib\opencv_world440.lib
+
 ```
 
 # Check Build OK
-Check `.\NFIR\bin` and `.\NFIR\lib\static` dir:
+Copy the `.\opencv-4.4.0\build\x64\vc15\bin\opencv_world440.dll` file to the same dir as `nfir.exe`.
 
 <pre><code>
-.\NFIR\bin> dir nfir.exe
- 
-   06/20/2019  01:01 PM           663,040 nfir.exe
-
-.\NFIR\lib\static> dir nfir.lib
-
-   06/20/2019  01:01 PM           978,094 nfir.lib
-
 .\NFIR\bin> nfir.exe -v
 NFIR (NIST Fingerprint Image Resampler) version: 0.1.0
-OpenCV version: 3.4.5
+OpenCV version: 4.4.0
 </code></pre>
 
 ## Doc the App

@@ -16,11 +16,9 @@ GLOB_SRC_DIR  = $(GLOB_IDIR)
 SRC_GLOB_FNAME = $(GLOB_SRC_DIR)\glob_win32.cpp
 
 
-# OpenCV 3.4.5
-OPENCV_LIBS=$(OPENCV_LIBSDIR)\opencv_world345.lib
-
-# OpenCV 2.4.13
-#OPENCV_LIBS=$(OPENCV_LIBSDIR)\opencv_core2413.lib $(OPENCV_LIBSDIR)\opencv_imgproc2413.lib $(OPENCV_LIBSDIR)\opencv_highgui2413.lib
+# OpenCV 4.4.0
+OPENCV_INCDIR = D:\OpenCV\opencv-4.4.0\build\include
+OPENCV_LIBS   = D:\OpenCV\opencv-4.4.0\build\x64\vc15\lib\opencv_world440.lib
 
 
 #  objects

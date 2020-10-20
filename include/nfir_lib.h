@@ -38,6 +38,7 @@ NOTE: source image (srcImage) must be 8-bit grayscale. Target image (tgtImage)
 
 #pragma once
 
+#include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <string>
 

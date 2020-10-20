@@ -10,7 +10,7 @@ CC := g++
 CC_VERSION := gnu++11
 
 # compiler flags
-CFLAGS := -std=$(CC_VERSION) -Wall -I$(IDIR) -I$(GLOB_IDIR) -I$(OPENCV_HDRS)
+CFLAGS := -std=$(CC_VERSION) -Wall -I$(IDIR) -I$(GLOB_IDIR) $(OPENCV_HDRS)
 CFLAGS_GLOB := -std=$(CC_VERSION) -I$(GLOB_IDIR)
 
 LINKER := g++
