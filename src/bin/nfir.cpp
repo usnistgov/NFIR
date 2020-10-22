@@ -325,7 +325,7 @@ Read source image from disk. Source image must be 8-bit grayscale.
 */
 cv::Mat readImage( const std::string image_path )
 {
-  cv::Mat image = cv::imread( image_path, cv::COLOR_BGR2GRAY );
+  cv::Mat image = cv::imread( image_path, cv::IMREAD_UNCHANGED );
   return image;
 }
 
