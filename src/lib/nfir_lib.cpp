@@ -26,17 +26,13 @@ of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
 
 *******************************************************************************/
+#include "exceptions.h"
 #include "filter_mask_gaussian.h"
 #include "filter_mask_ideal.h"
 #include "nfir_lib.h"
 #include "resample_down.h"
 #include "resample_up.h"
 
-#include <iostream>
-
-#define NFIR_VERSION_MAJOR 0
-#define NFIR_VERSION_MINOR 1
-#define NFIR_VERSION_PATCH 0
 
 /** Library private methods */
 static cv::Mat padImage( cv::Mat, Padding& );
@@ -67,8 +63,7 @@ final resize.
 @param interpolationMethod [ bilinear | default to bicubic ]
 @param filterShape [ ideal | default to gaussian ]
 
-@throw std::invalid_argument for invalid sample rate(s), interpolation method
- and downsample filter shape
+@throw NFIR::Miscue for invalid sample rate(s), interpolation method, downsample filter shape, or cannot resize image
 */
 void resample( cv::Mat &srcImage, cv::Mat &tgtImage,
                int srcSampleRate, int tgtSampleRate,
@@ -102,17 +97,17 @@ void resample( cv::Mat &srcImage, cv::Mat &tgtImage,
     errCode = resampler->set_interpolationMethodAndFilterShape( interpolationMethod, filterShape );
   }
   if( errCode == -1 ) {
-    throw std::invalid_argument( "NFIR lib: invalid interpolation method: '" + interpolationMethod + "'" );
+    throw NFIR::Miscue( "NFIR lib: invalid parameter interpolation method: '" + interpolationMethod + "'" );
   }
   else if( errCode == -2 ) {
-    throw std::invalid_argument( "NFIR lib: invalid filter shape: '" + filterShape + "'");
+    throw NFIR::Miscue( "NFIR lib: invalid parameter filter shape: '" + filterShape + "'");
   }
 
   if( tgtSampleRate > srcSampleRate )
   {
     tgtImage = resampler->resize( srcImage );
     if( tgtImage.empty() ) {
-      throw std::runtime_error( "NFIR lib: Upsample failed resize()" );
+      throw NFIR::Miscue( "NFIR lib: Upsample failed resize()" );
     }
     return;
   }
@@ -122,24 +117,32 @@ void resample( cv::Mat &srcImage, cv::Mat &tgtImage,
 
   // Build the filter/mask for freq domain mulSpectums.
   // The filter/mask is same dimension (WxH) as the padded, source image.
-  if( resampler->get_filterShape() == "gaussian" )
+  try
   {
-    currentFilter = new Gaussian( srcSampleRate, tgtSampleRate );
-    currentFilter->build( padded.size() );
-  }
-  else if( resampler->get_filterShape() == "ideal" )
-  {
-    currentFilter = new Ideal( srcSampleRate, tgtSampleRate );
-    currentFilter->build( padded.size() );
-  }
+    if( resampler->get_filterShape() == "gaussian" )
+    {
+      currentFilter = new Gaussian( srcSampleRate, tgtSampleRate );
+      currentFilter->build( padded.size() );
+    }
+    else if( resampler->get_filterShape() == "ideal" )
+    {
+      currentFilter = new Ideal( srcSampleRate, tgtSampleRate );
+      currentFilter->build( padded.size() );
+    }
+    else
+    {
+      // Although filter shape has already been verfied, the compiler throws an error
+      // that currentFilter may not have been initialized.
+      throw NFIR::Miscue( "NFIR lib: invalid parameter filter shape: '" + resampler->get_filterShape() + "'");
+    }
 
-  // Now that the padded, source image and filter mask are available...
-  try {
+    // Now that the padded, source image and "current" filter mask are available...
     tgtImage = resampler->resize( padded, currentFilter, actualPadSize );
   }
   catch( const cv::Exception& ex ) {
-    std::cout << "NFIR lib: Downsample failed resize()" << std::endl;
-    throw ex;
+    std::string err{"NFIR lib: Downsample failed resize(): "};
+    err.append( ex.what() );
+    throw NFIR::Miscue( err );
   }
 
 
@@ -155,13 +158,14 @@ void resample( cv::Mat &srcImage, cv::Mat &tgtImage,
 
 /**
 */
-void printVersion()
+std::string printVersion()
 {
-  std::cout << "NFIR (NIST Fingerprint Image Resampler) version: "
-            << NFIR_VERSION_MAJOR << "."
-            << NFIR_VERSION_MINOR << "."
-            << NFIR_VERSION_PATCH << std::endl;
-  std::cout << "OpenCV version: " << CV_VERSION << std::endl;
+  std::string s{ "NFIR (NIST Fingerprint Image Resampler) version: " };
+  std::string v{ NFIR_VERSION };
+  s.append(v);
+  s.append( "\nOpenCV version: ");
+  s.append(CV_VERSION);
+  return s;
 }
 
 }   // End namespace
@@ -202,17 +206,17 @@ cv::Mat padImage( cv::Mat image, Padding &actual )
 /**
 Validate the sample rates not handled by CLI11.
 
-@throw invalid_argument sample rates cannot be equal negative
+@throw NFIR::Miscue sample rates cannot be equal or negative
 */
 void validateSampleRate( int srcSampleRate, int tgtSampleRate )
 {
   if( tgtSampleRate == srcSampleRate )
   {
-    throw std::invalid_argument( "NFIR lib: src and tgt sample rates cannot be equal" );
+    throw NFIR::Miscue( "NFIR lib: src and target sample rates cannot be equal" );
   }
 
   if( (srcSampleRate <= 0 ) || ( tgtSampleRate <= 0 ) )
   {
-    throw std::invalid_argument( "NFIR lib: src and/or tgt sample rate cannot be negative" );
+    throw NFIR::Miscue( "NFIR lib: src and/or target sample rate cannot be negative" );
   }
 }

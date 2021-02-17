@@ -38,13 +38,17 @@ NOTE: source image (srcImage) must be 8-bit grayscale. Target image (tgtImage)
 
 #pragma once
 
+#include "exceptions.h"
+
 #include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <string>
 
+#define NFIR_VERSION "0.1.0"
+
 namespace NFIR {
 
-void printVersion(void);
+std::string printVersion(void);
 void resample( cv::Mat &srcImage, cv::Mat &tgtImage,
                int srcSampleRate, int tgtSampleRate,
                std::string interpolationMethod, std::string filterShape );

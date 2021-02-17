@@ -42,7 +42,7 @@ TARGET_STATIC_LIB=$(TARGET_LIB_DIR)\$(TARGET_NAME).lib
 
 # Specify compiler
 CC=cl.exe
-CFLAGS=/c /EHsc /WX /D_WIN32_64 /nologo
+CFLAGS=/c /EHsc /W4 /WX /D_WIN32_64 /nologo
 
 # Specify linker
 LINK_LIB=lib.exe
@@ -52,12 +52,12 @@ LINK=link.exe
 
 $(TARGET_BIN) : $(TARGET_STATIC_LIB)
 	@echo BUILD binary...
-	$(LINK) $(OBJ_BIN_FILES) $(TARGET_STATIC_LIB) $(OPENCV_LIBS) -out:$@
+	$(LINK) /WX $(OBJ_BIN_FILES) $(TARGET_STATIC_LIB) $(OPENCV_LIBS) -out:$@
 	@echo SUCCESS !
 
 $(TARGET_STATIC_LIB) : $(LIB_OBJ) $(GLOB_OBJ) $(MAIN_OBJ)
 	@echo BUILD static lib...
-	$(LINK_LIB) $(OBJ_LIB_DIR)\*.obj /ignore:4006 -out:$@
+	$(LINK_LIB) /WX $(OBJ_LIB_DIR)\*.obj /ignore:4006 -out:$@
 
 $(LIB_OBJ) : $(SRC_LIB_FILES)
 	$(CC) $(CFLAGS) /Fo$(OBJ_LIB_DIR)\ /I$(IDIR) /I$(OPENCV_INCDIR) $**

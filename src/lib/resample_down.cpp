@@ -41,7 +41,7 @@ Downsample::Downsample()
   Init();
 }
 // Copy constructor.
-Downsample::Downsample( const Downsample& aCopy )
+Downsample::Downsample( const Downsample& aCopy ) : Resample::Resample( aCopy )
 {
   Copy( aCopy );
 }
@@ -132,6 +132,20 @@ cv::Mat Downsample::resize( cv::Mat srcImg, NFIR::FilterMask* filterMask, Paddin
 
   return resampledImg;
 }
+
+
+/** Wrapper for the OpenCV `resize` function.  Uses resize factor and
+interpolation method.  NOT TO BE CALLED; overridden to satisfy linker.
+
+@param srcImg to be resized by the amount of the `resizeFactor`
+
+@return target resized image
+*/
+cv::Mat Downsample::resize( cv::Mat srcImg )
+{
+  return srcImg;
+}
+
 
 
 Downsample Downsample::Clone(void)

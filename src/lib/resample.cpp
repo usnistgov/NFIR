@@ -79,8 +79,8 @@ Resample::Resample( int srcSampleRate, int tgtSampleRate )
 // *********
 
 // 'resize()' methods are declared virtual and MUST be overridden in derived class.
-cv::Mat Resample::resize( cv::Mat _srcImg ) { cv::Mat mat; return mat; }   // upsample
-cv::Mat Resample::resize( cv::Mat _srcImg, NFIR::FilterMask* _filterMask, Padding& _pads )   // downsample
+cv::Mat Resample::resize( cv::Mat ) { cv::Mat mat; return mat; }   // upsample
+cv::Mat Resample::resize( cv::Mat, NFIR::FilterMask*, Padding& )   // downsample
 {
   cv::Mat mat;
   return mat;
@@ -92,8 +92,8 @@ void Resample::to_s() const { }   // print config params to console
 // First, define all the set methods. The "dirty" flag is not
 // necessary for completeness, but it makes life a LOT easier.
 
-int Resample::set_interpolationMethod( const std::string _s ) { int errorCode{0}; return errorCode; }
-int Resample::set_interpolationMethodAndFilterShape( const std::string _im, const std::string _fs )
+int Resample::set_interpolationMethod( const std::string ) { int errorCode{0}; return errorCode; }
+int Resample::set_interpolationMethodAndFilterShape( const std::string, const std::string )
 {
   int errorCode{0};
   return errorCode;

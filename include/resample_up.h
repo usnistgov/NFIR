@@ -52,6 +52,7 @@ public:
 
 
   cv::Mat resize( cv::Mat ) override;
+  cv::Mat resize( cv::Mat, NFIR::FilterMask*, Padding& ) override;
   void to_s(void) const override;
   int set_interpolationMethod( const std::string ) override;
 

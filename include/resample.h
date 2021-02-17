@@ -27,6 +27,9 @@ identified are necessarily the best available for the purpose.
 
 *******************************************************************************/
 #pragma once
+#ifdef _WIN32
+  #pragma warning( disable: 4514 )  // message(void): unreferenced inline function has been removed.
+#endif                              // Seems that latest version (since 20 Dec 2020) of VS has fixed this.
 
 #include "filter_mask.h"
 
@@ -38,10 +41,18 @@ identified are necessarily the best available for the purpose.
 typedef int InterpolationMethod;
 
 struct Padding {
-  unsigned top;
-  unsigned bottom;
-  unsigned left;
-  unsigned right;
+  int top;
+  int bottom;
+  int left;
+  int right;
+
+  void clear(void)
+  {
+    top = 0;
+    bottom = 0;
+    left = 0;
+    right = 0;
+  }
 };
 
 

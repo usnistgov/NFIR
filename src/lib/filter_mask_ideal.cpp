@@ -38,7 +38,7 @@ Ideal::Ideal()
   Init();
 }
 // Copy constructor.
-Ideal::Ideal( const Ideal& aCopy )
+Ideal::Ideal( const Ideal& aCopy ) : FilterMask::FilterMask( aCopy )
 {
   Copy( aCopy );
 }
@@ -131,7 +131,7 @@ void Ideal::build( cv::Size mask_size )
   cv::Mat meshgridScaledRows, meshgridScaledCols;
 
   // Get the vertices based on the dimensions of the mask.
-  float aVertex, bVertex;
+  double aVertex, bVertex;
   aVertex = mask_size.width / (2.0 * _maskRadiusFactor);
   bVertex = mask_size.height / (2.0 * _maskRadiusFactor);
 
@@ -161,7 +161,7 @@ void Ideal::build( cv::Size mask_size )
   // Because of this technique, the "max" value is IDENTICAL in both
   // the zero-row and zero-column.  However, this code was left intact
   // since the IDENTICAL values were only discovered to be so upon testing.
-  int distDiscriminator = std::min( rowMax, colMax ) * _maskRadiusFactor;
+  double distDiscriminator = std::min( rowMax, colMax ) * _maskRadiusFactor;
 
   // Set mask value based on distance-frequency (cutoff distance).
   cv::Mat tmp = cv::Mat( N, M, CV_32F );

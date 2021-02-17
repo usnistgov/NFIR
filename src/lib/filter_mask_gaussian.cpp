@@ -40,7 +40,7 @@ Gaussian::Gaussian()
   Init();
 }
 // Copy constructor.
-Gaussian::Gaussian( const Gaussian& aCopy )
+Gaussian::Gaussian( const Gaussian& aCopy ) : FilterMask::FilterMask( aCopy )
 {
   Copy( aCopy );
 }

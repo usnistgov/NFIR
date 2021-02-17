@@ -3,18 +3,18 @@
 IDIR      := ../include
 GLOB_IDIR := ../thirdparty/szx/glob
 
-OPENCV_LIBS := $(shell pkg-config --libs opencv)
-OPENCV_HDRS := $(shell pkg-config --cflags opencv)
+OPENCV_LIBS := $(shell pkg-config --libs opencv4)
+OPENCV_HDRS := $(shell pkg-config --cflags opencv4)
 
 CC := g++
 CC_VERSION := gnu++11
 
 # compiler flags
-CFLAGS := -std=$(CC_VERSION) -Wall -I$(IDIR) -I$(GLOB_IDIR) $(OPENCV_HDRS)
+CFLAGS := -std=$(CC_VERSION) -Wall -Werror -Wextra -I$(IDIR) -I$(GLOB_IDIR) $(OPENCV_HDRS)
 CFLAGS_GLOB := -std=$(CC_VERSION) -I$(GLOB_IDIR)
 
 LINKER := g++
-LFLAGS := -Wall
+LFLAGS := -Wall -Werror -Wextra
 
 ARCHIVER := ar
 

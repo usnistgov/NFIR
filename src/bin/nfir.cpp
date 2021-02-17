@@ -26,6 +26,10 @@ of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
 
 *******************************************************************************/
+#ifdef _WIN32
+  #pragma warning(disable : 4996)  // 'ctime': This function or variable may be unsafe. Consider using ctime_s instead.
+#endif
+
 #include "CLI11.hpp"
 #include "glob.h"
 #include "nfir_lib.h"
@@ -154,7 +158,7 @@ int main(int argc, char** argv)
 
   if( versionFlag )
   {
-    NFIR::printVersion();
+    std::cout << NFIR::printVersion() << std::endl;
     return(0);
   }
 
@@ -168,7 +172,7 @@ int main(int argc, char** argv)
   // Output config data to console and prompt to continue.
   if( verifyFlag )
   {
-    NFIR::printVersion();
+    std::cout << NFIR::printVersion() << std::endl;
     std::cout << "  *** Verify runtime parameters ***" << std::endl;
     std::cout << "Source sample rate: '" << srcSampleRate << "'" << std::endl;
     std::cout << "Target sample rate: '" << tgtSampleRate << "'" << std::endl;
@@ -214,6 +218,7 @@ int main(int argc, char** argv)
 
 
   // START LOOP through all src images.
+  std::string srcPath{""};
   std::string tgtPath{""};
   cv::Mat srcImage,tgtImage;
 
@@ -234,6 +239,7 @@ int main(int argc, char** argv)
       std::cout << "Cannot open image: '" << it << "'\n";
       continue;
     }
+    srcPath = it;
 
     // Perform the resample by calling the library's resample() method.
     if( !dryRunFlag )
@@ -245,12 +251,8 @@ int main(int argc, char** argv)
         cv::imwrite( tgtPath, tgtImage );
         tmp_count += 1;
       }
-      catch( const std::runtime_error& e ) {
-        std::cerr << "resample() runtime error: " << e.what() << std::endl;
-        return -1;
-      }
-      catch( const std::invalid_argument& e ) {
-        std::cout << "resample() invalid argument: " << e.what() << std::endl;
+      catch( NFIR::Miscue &e ) {
+        std::cout << e.message() << std::endl;
         return -1;
       }
       catch( const cv::Exception& ex ) {
@@ -263,20 +265,26 @@ int main(int argc, char** argv)
     if( verboseFlag )
     {
       if( dryRunFlag )
-        std::cout << "dry-run tgtPath: " << tgtPath << std::endl ;
+      {
+        std::cout << "dry-run srcPath: " << srcPath << std::endl;
+        std::cout << "dry-run tgtPath: " << tgtPath << std::endl;
+      }
       else
-        std::cout << "tgtPath: " << tgtPath << std::endl ;
+      {
+        std::cout << "srcPath: " << srcPath << std::endl;
+        std::cout << "tgtPath: " << tgtPath << std::endl;
+      }
     }
 
   }   // END LOOP through all src images.
 
-  auto endStamp = std::chrono::system_clock::now();
+  std::chrono::system_clock::time_point endStamp = std::chrono::system_clock::now();
   std::time_t endTime = std::chrono::system_clock::to_time_t( endStamp );
 
   std::chrono::duration<double> elapsedSeconds{ endStamp-startStamp };
 
   std::cout << "Total RESAMPLED images count: " << tmp_count << std::endl;
-  std::cout << "Finished computation at " << std::ctime(&endTime)
+  std::cout << "Finished computation: " << std::ctime(&endTime)
             << "Elapsed time: " << elapsedSeconds.count() << "s\n";
   return 0;
 }
@@ -292,7 +300,7 @@ to source fname.
 */
 std::string buildTargetImageFilename( std::string srcPath )
 {
-  std::string out = "";
+  std::string out{""};
 
   size_t found;
   found = srcPath.find_last_of( "/\\" );
@@ -350,7 +358,7 @@ void retrieveSourceImagesList( std::string dir, std::string fmt, std::vector<std
       glob.Next();
       continue;
     }
-    v.push_back( dir + "/" + glob.GetFileName() );
+    v.push_back( dir + separator() + glob.GetFileName() );
     glob.Next();
   }
 

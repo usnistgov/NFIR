@@ -86,7 +86,7 @@ FilterMask::FilterShape FilterMask::get_filterShape(void) const
   return fs;
 }
 
-void FilterMask::build( cv::Size mask_size ) { }
+void FilterMask::build( cv::Size ) { }
 
 double FilterMask::get_maskRadiusFactor(void) const
 {

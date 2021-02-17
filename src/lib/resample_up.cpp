@@ -40,7 +40,7 @@ Upsample::Upsample()
   Init();
 }
 // Copy constructor.
-Upsample::Upsample( const Upsample& aCopy )
+Upsample::Upsample( const Upsample& aCopy ) : Resample::Resample( aCopy )
 {
   Copy( aCopy );
 }
@@ -77,6 +77,22 @@ cv::Mat Upsample::resize( cv::Mat srcImg )
   cv::Mat tgtImg;
   cv::resize( srcImg, tgtImg, cv::Size(0, 0), _resizeFactor, _resizeFactor, _interpolationMethod );
   return tgtImg;
+}
+
+
+/** Wrapper for the OpenCV `resize` function.  NOT TO BE CALLED; overridden to satisfy linker.
+
+@param srcImg to be resized by the amount of the __resizeFactor__
+@param filterMask that is multiplied with the freq domain image
+@param pads amount to crop the space domain image
+
+@return target resized image
+*/
+cv::Mat Upsample::resize( cv::Mat srcImg, NFIR::FilterMask* filterMask, Padding& pads )
+{
+  filterMask->~FilterMask();
+  pads.clear();
+  return srcImg;
 }
 
 
