@@ -37,6 +37,7 @@ identified are necessarily the best available for the purpose.
 
 #include <chrono>
 #include <ctime>
+#include <regex>
 #include <stdexcept>
 #include <string>
 
@@ -44,7 +45,7 @@ identified are necessarily the best available for the purpose.
 static int srcSampleRate{0};
 static int tgtSampleRate{0};
 
-static std::string buildTargetImageFilename( std::string );
+static std::string buildTargetImageFilename( std::string, std::string );
 static cv::Mat readImage( std::string );
 static void retrieveSourceImagesList( std::string, std::string, std::vector<std::string>& );
 
@@ -94,8 +95,11 @@ int main(int argc, char** argv)
   app.add_option( "-t, --tgt-dir", tgtDir, "Target imagery dir (absolute or relative)" )
     ->check(CLI::ExistingDirectory);
 
-  std::string imageFileFormat {"png"};
-  app.add_option( "-m, --img-fmt", imageFileFormat, "Image compression format by filename extension, default is 'png'" );
+  std::string srcImageFormat {"png"};
+  app.add_option( "-m, --src-img-fmt", srcImageFormat, "Image compression format by filename extension, default is 'png'" );
+
+  std::string tgtImageFormat {"png"};
+  app.add_option( "-n, --tgt-img-fmt", tgtImageFormat, "Image compression format by filename extension, default is 'png'" );
 
   std::string interpolationMethod {};
   CLI::Option *im_opt = app.add_option( "-i, --interp-method", interpolationMethod, "For interpolation use [ bicubic | bilinear ]" );
@@ -180,6 +184,9 @@ int main(int argc, char** argv)
     std::cout << "Target image file: '"  << tgtFile << "'" << std::endl;
     std::cout << "Source imagery dir: '" << srcDir  << "'" << std::endl;
     std::cout << "Target imagery dir: '" << tgtDir  << "'" << std::endl;
+    std::cout << "Source image format: '" << srcImageFormat  << "'" << std::endl;
+    std::cout << "Target image format: '" << tgtImageFormat  << "'" << std::endl;
+    std::cout << "Resample interpolation method: '" << interpolationMethod  << "'" << std::endl;
     std::cout << std::endl;
     std::cout << "Dry-run: " << std::boolalpha << dryRunFlag << std::endl;
     std::cout << "Verbose mode: " << std::boolalpha << verboseFlag << std::endl;
@@ -211,7 +218,7 @@ int main(int argc, char** argv)
     listSrcImages.push_back( srcFile );
   }
   else {
-    retrieveSourceImagesList(srcDir, imageFileFormat, listSrcImages);
+    retrieveSourceImagesList(srcDir, srcImageFormat, listSrcImages);
   }
 
   auto startStamp = std::chrono::system_clock::now();
@@ -224,11 +231,11 @@ int main(int argc, char** argv)
 
   for( auto it:listSrcImages )
   {
-    if( srcFile != "" ) {
+    if( srcFile != "" ) {   // source image specific by name in config
       tgtPath = tgtFile;
     }
-    else {
-      std::string tgtFname = buildTargetImageFilename( it );
+    else {                  // source image(s) specified by dir in config
+      std::string tgtFname = buildTargetImageFilename( it, tgtImageFormat );
       tgtPath = tgtDir + tgtFname;
     }
 
@@ -257,7 +264,7 @@ int main(int argc, char** argv)
       }
       catch( const cv::Exception& ex ) {
         std::cout << "NFIR bin: Exception for '" << it << "'.\n  OpenCV error message: "
-                  << ex.what() << "Image format attempted: " << imageFileFormat << "\n\n";
+                  << ex.what() << "Image format attempted: " << srcImageFormat << "\n\n";
         continue;
       }
     }
@@ -291,38 +298,58 @@ int main(int argc, char** argv)
 
 
 /**
-Build string: `-srcSampleRateStr + "to" + tgtSampleRateStr + "ppi"` and append
-to source fname.
+The target filename is based purely on the source filename. The only "change"
+that is made is that the source sample rate is replaced by:
+  "SRCRATEtoTGTRATE".
+
+EXAMPLE:
+src: A0001_10P_E01_300PPI.jpg
+tgt: A0001_10P_E01_0300to0500PPI.png  <-- note change in extension
+
 
 @param srcPath path of source image
+@param fmt target-image filename extension
 
 @return filename of target image
 */
-std::string buildTargetImageFilename( std::string srcPath )
+std::string buildTargetImageFilename( std::string srcPath, std::string fmt )
 {
-  std::string out{""};
+  std::string out{""};  // the string to be built to be returned
 
+  // Prep the regex search expression per the source sample rate (via config param).
+  // Just for case that source sample rate *might* be preceeded by zero, one, or more
+  // leading zeroes, use reg-exp search to find the substring that will be replaced
+  // by the "FROMtoTO" string (local variable resampStr).
+  std::string rxStr{ "\\d*" };
+  rxStr.append( std::to_string( srcSampleRate ) );
+  rxStr.append( "ppi");   // sample rate MUST be followed immediately by [PPI | ppi].
+  std::regex rx( rxStr, std::regex_constants::ECMAScript | std::regex_constants::icase );
+  std::smatch matchResult;
+
+  // Parse the base filename of the source from the full PATH.
   size_t found;
   found = srcPath.find_last_of( "/\\" );
   std::string folder = srcPath.substr(0,found);
-  std::string fname = srcPath.substr(found+1);
+  std::string tmp = srcPath.substr(found+1);
+  found = tmp.find_last_of( "." );
+  std::string bname = tmp.substr(0,found);
 
-  // int srcSampRate = resamp.get_srcSampleRate();
-  // int tgtSampleRate = resamp.get_tgtSampleRate();
-  std::stringstream ss;
-  ss << std::setw(4) << std::setfill('0') << srcSampleRate;  // Insert leading zero
-  std::string srcSampleRateStr = ss.str();
-  ss.str(std::string());
-  ss << std::setw(4) << std::setfill('0') << tgtSampleRate;
-  std::string tgtSampleRateStr = ss.str();
+  // Prepend leading zeroes, if required, to the sample rates so that they
+  // contain 4 chars.
+  std::stringstream ss2;
+  ss2 << std::setw(4) << std::setfill('0') << srcSampleRate;  // Insert leading zero
+  std::string srcSampleRateStr = ss2.str();
+  ss2.str(std::string());   // clear stream
+  ss2 << std::setw(4) << std::setfill('0') << tgtSampleRate;
+  std::string tgtSampleRateStr = ss2.str();
+  // Build the "from-to" string.
+  std::string resampStr = srcSampleRateStr + "to" + tgtSampleRateStr + "PPI";
 
-  std::string resampStr = srcSampleRateStr + "to" + tgtSampleRateStr + "ppi";
+  // Search for the source sample rate and replace with the "from-to" string.
+  std::regex_search( bname, matchResult, rx );
+  bname.replace( bname.find( matchResult[0] ), matchResult[0].length(), resampStr );
 
-  found = fname.find_last_of( "." );
-  std::string bname = fname.substr(0,found);
-  std::string extension = fname.substr(found);   // pick up the . (dot)
-
-  out = separator() + bname + "-" + resampStr + extension;
+  out = separator() + bname + "." + fmt;
 
   return out;
 }
