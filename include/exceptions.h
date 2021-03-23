@@ -45,14 +45,14 @@ public:
   /**
   @param msg error message
   */
-  Miscue( const std::string msg ) : _msg(msg) {}
+  Miscue( const std::string msg ) : _msg{"NFIR Exception: " + msg} {}
 
   /**
   @return text of the error message
   */
-  std::string message(void)
+  const char* what() const noexcept override
   {
-    return "NFIR Exception: " + _msg;
+    return _msg.c_str();
   }
 };
 

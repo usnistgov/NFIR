@@ -251,8 +251,8 @@ int main(int argc, char** argv)
         cv::imwrite( tgtPath, tgtImage );
         tmp_count += 1;
       }
-      catch( NFIR::Miscue &e ) {
-        std::cout << e.message() << std::endl;
+      catch( const NFIR::Miscue &e ) {
+        std::cout << e.what() << std::endl;
         return -1;
       }
       catch( const cv::Exception& ex ) {
