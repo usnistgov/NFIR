@@ -45,7 +45,7 @@ public:
   /**
   @param msg error message
   */
-  Miscue( const std::string msg ) : _msg{"NFIR Exception: " + msg} {}
+  Miscue( const std::string &msg ) : _msg{"NFIR Exception: " + msg} {}
 
   /**
   @return text of the error message
