@@ -24,7 +24,6 @@ in order to perform the software development.  In no case does such
 identification imply recommendation or endorsement by the National Institute
 of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
-
 *******************************************************************************/
 #pragma once
 
@@ -32,11 +31,10 @@ identified are necessarily the best available for the purpose.
 
 namespace NFIR {
 
+/** @brief Support the Gaussian lowpass filter used for downsample. */
 class Gaussian : public FilterMask
 {
 private:
-  bool dirty;       // Keep track of the object state.
-
   FilterShape _filterShape;
 
 public:

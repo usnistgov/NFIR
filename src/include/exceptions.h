@@ -24,43 +24,52 @@ in order to perform the software development.  In no case does such
 identification imply recommendation or endorsement by the National Institute
 of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
-
 *******************************************************************************/
 #pragma once
+#ifdef WIN32
+  #pragma warning( disable: 4514 )  // message(void): unreferenced inline function has been removed.
+#endif                              // Seems that latest version (since 20 Dec 2020) of VS has fixed this.
 
-#include "resample.h"
+#include <exception>
+#include <string>
 
 namespace NFIR {
 
-class Upsample : public Resample
-{
-private:
-  bool dirty;       // Keep track of the object state.
+/**
+ * @brief Handle exceptions thrown by the Resample constructor and subsequent
+ * method calls.
+*/
+class Miscue: public std::exception {
+
+  /**
+   * @brief Custom error message.
+   * 
+   */
+  std::string _msg{""};
 
 public:
-  // Default constructor.
-  Upsample();
+  /**
+   * @param msg custom error message
+   */
+  Miscue( const std::string &msg ) : _msg{"NFIR Exception: " + msg} {}
+  ~Miscue() {}
 
-  // Copy constructor.
-  Upsample( const Upsample& );
+  /** Utilize custom error message.
+   *
+   * @return text of the error message
+   */
+  std::string message() const
+  {
+    return "NFRL Exception: " + _msg;
+  }
 
-  // Full constructor with all accessible members defined.
-  Upsample( int, int );
-
-  // Virtual destructor
-  virtual ~Upsample() {}
-
-
-  cv::Mat resize( cv::Mat ) override;
-  cv::Mat resize( cv::Mat, NFIR::FilterMask*, Padding& ) override;
-  void to_s(void) const override;
-  int set_interpolationMethod( const std::string ) override;
-
-  // Implement a clone operator.
-  Upsample Clone(void);
-
-  // Implement an assigment operator.
-  Upsample operator=( const Upsample& );
+  /**
+   * @return text of the error message
+   */
+  const char* what() const noexcept override
+  {
+    return _msg.c_str();
+  }
 };
 
 }   // End namespace

@@ -24,7 +24,6 @@ in order to perform the software development.  In no case does such
 identification imply recommendation or endorsement by the National Institute
 of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
-
 *******************************************************************************/
 #ifdef _WIN32
   #pragma warning(disable : 4996)  // 'ctime': This function or variable may be unsafe. Consider using ctime_s instead.
@@ -40,15 +39,26 @@ identified are necessarily the best available for the purpose.
 #include <regex>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 
+/** Well known sample rate of source image */
 static int srcSampleRate{0};
+/** Desired sample rate of generated, target image */
 static int tgtSampleRate{0};
+/** for the source image */
+static std::string srcPath{""};
+/** for the target (generated) image */
+static std::string tgtPath{""};
 
-static std::string buildTargetImageFilename( std::string, std::string );
-static cv::Mat readImage( std::string );
-static void retrieveSourceImagesList( std::string, std::string, std::vector<std::string>& );
+static std::string buildTargetImageFilename( const std::string, const std::string );
+static void retrieveSourceImagesList( const std::string, const std::string &, std::vector<std::string>& );
 
+/**
+ * @brief OS dependent path delimiter.
+ * 
+ * @return char '/' or '\'
+ */
 inline char separator()
 {
 #ifdef _WIN32_64
@@ -60,11 +70,16 @@ inline char separator()
 
 
 /**
-Process the command-line or config file runtime parameters.  Based on the source
-and target sample rates, run either up- or down-sample.
-
-For downsample, the filter/mask is built for each image (based on width/height of image).
-*/
+ * @brief `main' is a special function in all C++ programs; it is the function
+ * called when the program is run; execution for all C++ programs begins with
+ * the main function regardless of where the function is actually located
+ * within the code.
+ *
+ * Process the command-line or config file runtime parameters.  Based on the
+ * source and target sample rates, run either up- or down-sample.
+ *
+ * For downsample, each image lowpass filter is unique.
+ */
 int main(int argc, char** argv) 
 {
   CLI::App app{"Upsample, downsample images with known ppi. Command line options override config(.ini) file settings."};
@@ -109,29 +124,29 @@ int main(int argc, char** argv)
     ->needs(im_opt);
   im_opt->needs(fs_opt);
 
-  bool dryRunFlag {false};
-  app.add_flag( "-x,--dry-run", dryRunFlag, "Do not write images to disk" )
+  bool flagDryRun {false};
+  app.add_flag( "-x,--dry-run", flagDryRun, "Skip resample attempt" )
     ->multi_option_policy()
     ->ignore_case();
 
-  bool verifyFlag {true};
-  app.add_flag( "-y,--verify", verifyFlag, "Print config params prior to resampling; prompt to continue" )
+  bool flagVerify {true};
+  app.add_flag( "-y,--verify", flagVerify, "Print config params prior to resampling; prompt to continue" )
     ->multi_option_policy()
     ->ignore_case();
     // ->take_last(false);  // DOES NOT COMPILE; only allowed once on cmd line
 
-  bool verboseFlag {false};
-  app.add_flag( "-z,--verbose", verboseFlag, "Print target file path and final runtime count" )
+  bool flagVerbose {false};
+  app.add_flag( "-z,--verbose", flagVerbose, "Print image paths and total runtime count" )
     ->multi_option_policy()
     ->ignore_case();
 
-  bool versionFlag {false};
-  app.add_flag( "-v,--version", versionFlag, "Print NFIR, OpenCV versions and exit" )
+  bool flagVersion {false};
+  app.add_flag( "-v,--version", flagVersion, "Print NFIR, OpenCV versions and exit" )
     ->multi_option_policy()
     ->ignore_case();
 
-  bool printConfigFlag {false};
-  app.add_flag( "-p,--print-config", printConfigFlag, "Print config file and exit" )
+  bool flagPrintConfig {false};
+  app.add_flag( "-p,--print-config", flagPrintConfig, "Print config file and exit" )
     ->multi_option_policy()
     ->needs(cf_opt)
     ->ignore_case();
@@ -141,8 +156,11 @@ int main(int argc, char** argv)
   // If cmd line has zero switches, force -h.
   if( argc==1 )
   {
-    char hlp[8] = {"--help\0"};
+    char hlp[8] = "--help\0";
     argv[argc++] = hlp;
+    // Line below prevents CLI11 error: 'The following argument was not expected:'
+    // when binary is run with zero params, ie, argc=1.
+    std::cout << std::endl;
   }
 
   // This is what the macro CLI11_PARSE expands to:
@@ -151,49 +169,58 @@ int main(int argc, char** argv)
   {
     app.parse( argc, argv );
   }
-  catch( const CLI::ParseError &e )
+  catch( const CLI::ParseError &e )   // also catches help switch
   {
-    app.exit(e);
+    app.exit(e);    // prints help menu to console
     return -1;
   }
 
 
-
-
-  if( versionFlag )
+  if( flagVersion )
   {
     std::cout << NFIR::printVersion() << std::endl;
     return(0);
   }
 
-  if( printConfigFlag )
+  if( flagPrintConfig )
   {
-    std::cout << "*** Specified config file content ***" << std::endl;
     std::cout << app.config_to_str(false, true) << std::endl;
     return(0);
   }
 
   // Output config data to console and prompt to continue.
-  if( verifyFlag )
+  if( flagVerify )
   {
     std::cout << NFIR::printVersion() << std::endl;
-    std::cout << "  *** Verify runtime parameters ***" << std::endl;
+    std::cout << "\n  *** Verify runtime parameters ***" << std::endl;
     std::cout << "Source sample rate: '" << srcSampleRate << "'" << std::endl;
     std::cout << "Target sample rate: '" << tgtSampleRate << "'" << std::endl;
-    std::cout << "Source image file: '"  << srcFile << "'" << std::endl;
-    std::cout << "Target image file: '"  << tgtFile << "'" << std::endl;
-    std::cout << "Source imagery dir: '" << srcDir  << "'" << std::endl;
-    std::cout << "Target imagery dir: '" << tgtDir  << "'" << std::endl;
+    if( !srcFile.empty() ) {
+      std::cout << "Source image file: '"  << srcFile << "'" << std::endl;
+      std::cout << "Target image file: '"  << tgtFile << "'" << std::endl;
+    }
+    if( !srcDir.empty() ) {
+      std::cout << "Source imagery dir: '" << srcDir  << "'" << std::endl;
+      std::cout << "Target imagery dir: '" << tgtDir  << "'" << std::endl;
+    }
     std::cout << "Source image format: '" << srcImageFormat  << "'" << std::endl;
     std::cout << "Target image format: '" << tgtImageFormat  << "'" << std::endl;
-    std::cout << "Resample interpolation method: '" << interpolationMethod  << "'" << std::endl;
-    std::cout << std::endl;
-    std::cout << "Dry-run: " << std::boolalpha << dryRunFlag << std::endl;
-    std::cout << "Verbose mode: " << std::boolalpha << verboseFlag << std::endl;
+    if( tgtSampleRate < srcSampleRate ) {
+      std::cout << "Downsample filter shape: '" << filterShape << "'" << std::endl;
+      std::cout << "Downsample interpolation method: '" << interpolationMethod
+                << "'" << std::endl;
+    }
+    else
+    {
+      std::cout << "Upsample interpolation method: '" << interpolationMethod
+                << "'" << std::endl;
+    }
+    std::cout << "Dry-run: " << std::boolalpha << flagDryRun << std::endl;
+    std::cout << "Verbose mode: " << std::boolalpha << flagVerbose << std::endl;
 
     char key_press{};
     bool loooop{ true };
-    std::cout << "Press y to continue, n to exit:  ";
+    std::cout << "\nPress y to continue, n to exit:  ";
     while( loooop )
     {
       std::cin >> key_press;
@@ -218,17 +245,16 @@ int main(int argc, char** argv)
     listSrcImages.push_back( srcFile );
   }
   else {
-    retrieveSourceImagesList(srcDir, srcImageFormat, listSrcImages);
+    retrieveSourceImagesList( srcDir, srcImageFormat, listSrcImages );
+    if( listSrcImages.empty() ) {
+      std::cout << "Source images dir empty: " << srcDir << std::endl;
+      return 0;
+    }
   }
 
   auto startStamp = std::chrono::system_clock::now();
 
-
   // START LOOP through all src images.
-  std::string srcPath{""};
-  std::string tgtPath{""};
-  cv::Mat srcImage,tgtImage;
-
   for( auto it:listSrcImages )
   {
     if( srcFile != "" ) {   // source image specific by name in config
@@ -239,47 +265,99 @@ int main(int argc, char** argv)
       tgtPath = tgtDir + tgtFname;
     }
 
-    srcImage.release();
-    srcImage = readImage( it );
-    if( srcImage.empty() )
-    {
-      std::cout << "Cannot open image: '" << it << "'\n";
-      continue;
-    }
+    // Load file into memory (block); get its length
+    char *srcFileMemBlock;
+    std::ifstream ifsSrcFile( it, std::ios::binary );
+    ifsSrcFile.seekg( 0, std::ios::end );
+    uint64_t lenSrcFileBlock = ifsSrcFile.tellg();
+    ifsSrcFile.seekg( 0, std::ios::beg );
+    srcFileMemBlock = new char[lenSrcFileBlock];
+    ifsSrcFile.read( srcFileMemBlock, lenSrcFileBlock );
+    ifsSrcFile.close();
+
     srcPath = it;
 
-    // Perform the resample by calling the library's resample() method.
-    if( !dryRunFlag )
+    // Init NFIR resampler params.
+    uint8_t* srcImageAry{NULL};       // source image data
+    uint8_t* tmpImg{NULL};            // resampled image data
+    uint8_t** tgtImageAry{&tmpImg};   // pointer to resampled image data
+    uint32_t imageWidth{0};           // source IN and target OUT
+    uint32_t imageHeight{0};          // source IN and target OUT
+    std::vector<std::string>logRuntime;  // container for all log messages
+
+
+    // Copy the file stream into memory for resampler call.
+    srcImageAry = new uint8_t[lenSrcFileBlock];
+    std::memcpy( srcImageAry, srcFileMemBlock, lenSrcFileBlock );
+
+
+    if( !flagDryRun )
     {
       try {
-        NFIR::resample( srcImage, tgtImage,
-                  srcSampleRate, tgtSampleRate,
-                  interpolationMethod, filterShape );
-        cv::imwrite( tgtPath, tgtImage );
+        NFIR::resample( srcImageAry, tgtImageAry,
+                        srcSampleRate, tgtSampleRate, "inch",
+                        interpolationMethod, filterShape,
+                        &imageWidth, &imageHeight, &lenSrcFileBlock,
+                        srcImageFormat, tgtImageFormat,
+                        logRuntime );
+
+        std::ofstream outFile( tgtPath, std::ios::out | std::ios::binary );
+        if( outFile.is_open() )
+        {
+          outFile.write( reinterpret_cast<char*>(*tgtImageAry), lenSrcFileBlock );
+          outFile.close();
+        }
+        else
+        {
+          throw NFIR::Miscue( "Cannot open file for write: " + tgtPath );
+        }
         tmp_count += 1;
+
+        // {
+        //   // Access for the intermediate, filtered image prior to downsample.
+        //   // Uncomment this scope/section and set the tgtPath appropriately.
+        //   NFIR::get_filteredImage( tgtImageAry, srcImageFormat, &lenSrcFileBlock, &imageWidth, &imageHeight );
+        //   std::cout << "intermediate image Width:  " << imageWidth << std::endl;
+        //   std::cout << "intermediate image Height: " << imageHeight << std::endl;
+        //   std::cout << "intermediate image vector length: " << lenSrcFileBlock << std::endl;
+        //   // std::string filteredPath{""};
+        //   std::ofstream outFileIntermediateImage( filteredPath, std::ios::out | std::ios::binary );
+        //   if( outFileIntermediateImage.is_open() )
+        //   {
+        //     outFileIntermediateImage.write( reinterpret_cast<char*>(*tgtImageAry), lenSrcFileBlock );
+        //     outFile.close();
+        //   }
+        //   else
+        //   {
+        //     throw NFIR::Miscue( "Cannot open file for write: " + tgtPath );
+        //   }
+        // }
+
       }
       catch( const NFIR::Miscue &e ) {
         std::cout << e.what() << std::endl;
+        std::cout << "NFIR runtime log prior-to exception:" << std::endl;
+        for( auto s : logRuntime ) { std::cout << s << std::endl; }
         return -1;
-      }
-      catch( const cv::Exception& ex ) {
-        std::cout << "NFIR bin: Exception for '" << it << "'.\n  OpenCV error message: "
-                  << ex.what() << "Image format attempted: " << srcImageFormat << "\n\n";
-        continue;
       }
     }
 
-    if( verboseFlag )
+    if( flagVerbose )
     {
-      if( dryRunFlag )
+      if( flagDryRun )
       {
+        tmp_count += 1;
         std::cout << "dry-run srcPath: " << srcPath << std::endl;
         std::cout << "dry-run tgtPath: " << tgtPath << std::endl;
+        std::cout << "dry-run count: " << tmp_count << " of " << listSrcImages.size() << std::endl;
       }
       else
       {
+        std::cout << "-------------------------------------------" << std::endl;
         std::cout << "srcPath: " << srcPath << std::endl;
         std::cout << "tgtPath: " << tgtPath << std::endl;
+        for( auto s : logRuntime ) { std::cout << s << std::endl; }
+        std::cout << "RESAMPLE complete: " << tmp_count << " of " << listSrcImages.size() << std::endl;
       }
     }
 
@@ -298,21 +376,23 @@ int main(int argc, char** argv)
 
 
 /**
-The target filename is based purely on the source filename. The only "change"
-that is made is that the source sample rate is replaced by:
-  "SRCRATEtoTGTRATE".
-
-EXAMPLE:
-src: A0001_10P_E01_300PPI.jpg
-tgt: A0001_10P_E01_0300to0500PPI.png  <-- note change in extension
-
-
-@param srcPath path of source image
-@param fmt target-image filename extension
-
-@return filename of target image
-*/
-std::string buildTargetImageFilename( std::string srcPath, std::string fmt )
+ * @brief Supports glob operation for batch processing.
+ * 
+ * The target filename is based purely on the source filename. The only "change"
+ * that is made is that the source sample rate is replaced by:
+ *   "SRCRATEtoTGTRATE".
+ *
+ * EXAMPLE:
+ *
+ * src: A0001_10P_E01_300PPI.jpg
+ *
+ * tgt: A0001_10P_E01_0300to0500PPI.png  <-- note (allowable/configurable) change in extension
+ *
+ * @param srcPath path of source image
+ * @param fmt target-image filename extension
+ * @return filename of target image
+ */
+std::string buildTargetImageFilename( const std::string srcPath, const std::string fmt )
 {
   std::string out{""};  // the string to be built to be returned
 
@@ -354,26 +434,18 @@ std::string buildTargetImageFilename( std::string srcPath, std::string fmt )
   return out;
 }
 
-/**
-Read source image from disk. Source image must be 8-bit grayscale.
-@return image matrix (2-dim) in space domain
-*/
-cv::Mat readImage( const std::string image_path )
-{
-  cv::Mat image = cv::imread( image_path, cv::IMREAD_UNCHANGED );
-  return image;
-}
 
 /**
-Generate list of source files to resample.  Build the glob-expression using the
-image filename extension to generate the list.  If nothing is found, the
-OUT list is empty.
-
-@param dir that should contain imagery
-@param fmt image compression format by filename extension
-@param &v - OUT, alphanumeric, sorted list of file paths
-*/
-void retrieveSourceImagesList( std::string dir, std::string fmt, std::vector<std::string> &v )
+ * @brief Generate list of source files to resample.
+ *
+ * Build the glob-expression using the image filename extension to generate
+ * the list.  If nothing is found, the OUT list is empty.
+ *
+ * @param dir that should contain imagery
+ * @param fmt image compression format by filename extension
+ * @param v   OUT, alphanumeric, sorted list of file paths
+ */
+void retrieveSourceImagesList( const std::string dir, const std::string &fmt, std::vector<std::string> &v )
 {
   std::string globExpr =  dir + "/*." + fmt;
   glob::Glob glob(globExpr);

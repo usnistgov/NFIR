@@ -24,7 +24,6 @@ in order to perform the software development.  In no case does such
 identification imply recommendation or endorsement by the National Institute
 of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
-
 *******************************************************************************/
 #include "filter_mask_gaussian.h"
 
@@ -45,27 +44,23 @@ Gaussian::Gaussian( const Gaussian& aCopy ) : FilterMask::FilterMask( aCopy )
   Copy( aCopy );
 }
 
-/** Full constructor.  Calculates the filter/mask radius factor.
-Sets the filter/mask shape to `gaussian`.
-
-@param srcSampleRate source image ppi to be downsampled
-@param tgtSampleRate target image ppi of resulting image
-*/
+/**
+ * @brief Full constructor calculates the filter/mask radius factor.
+ * 
+ *  Sets the filter/mask shape to `Gaussian`.
+ *
+ * @param srcSampleRate source image ppi to be downsampled
+ * @param tgtSampleRate target image ppi of resulting image
+ */
 Gaussian::Gaussian( int srcSampleRate, int tgtSampleRate )
 {
   _srcSampleRate = srcSampleRate;
   _tgtSampleRate = tgtSampleRate;
 
   _maskRadiusFactor = (float)_tgtSampleRate / (float)_srcSampleRate;
-  _filterShape = FilterShape::gaussian;
-
-  dirty = true;
+  _filterShape = FilterShape::Gaussian;
 }
 
-
-// *********
-// Always create a virtual destructor- implemented in header file: virtual ~Ideal() {}.
-// *********
 
 FilterMask::FilterShape Gaussian::get_filterShape(void) const
 {
@@ -74,18 +69,19 @@ FilterMask::FilterShape Gaussian::get_filterShape(void) const
 
 
 /**
-Gaussian "curve" is based on size of source image in both x- and y- directions.
-Uses OpenCV gaussian kernel generator.  Normalize and shift (ie, quadrant swap)
-the mask and save it to instance variable.
-
-@param mask_size width and height in pixels
-*/
+ * @brief Uses OpenCV Gaussian kernel generator.
+ * 
+ * Gaussian "curve" is based on size of source image in both x- and y- directions.
+ * Normalize and shift (ie, quadrant swap) the mask.
+ *
+ * @param mask_size width and height in pixels
+ */
 void Gaussian::build( cv::Size mask_size )
 {
   double sigmaHeight = _maskRadiusFactor * mask_size.height / 2.0;
   double sigmaWidth = _maskRadiusFactor * mask_size.width / 2.0;
 
-  // OpenCV gaussian kernel generator
+  // OpenCV Gaussian kernel generator
   cv::Mat kernelX = cv::getGaussianKernel( mask_size.height, sigmaHeight, CV_32F );
   cv::Mat kernelY = cv::getGaussianKernel( mask_size.width,  sigmaWidth,  CV_32F );
 
@@ -96,16 +92,20 @@ void Gaussian::build( cv::Size mask_size )
 
   quadrantSwap( normKernel );
 
-  _theMask = normKernel.clone();
+  _theFilterMask = normKernel.clone();
 }
 
 }   // End namespace
+ 
 
-/** Rearrange the quadrants of a Fourier image so that the origin is at
-the image center. Also known as a "shift".
-
-@param magI fourier "image" to be shifted
-*/
+/**
+ * @brief Also known as a "shift".
+ *
+ * Rearrange the quadrants of a Fourier image so that the origin
+ * is at the image center.
+ *
+ * @param magI fourier "image" to be shifted
+ */
 void quadrantSwap( cv::Mat magI )
 {
   // Rearrange the quadrants of Fourier image so that the origin is at the image center

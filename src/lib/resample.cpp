@@ -24,7 +24,6 @@ in order to perform the software development.  In no case does such
 identification imply recommendation or endorsement by the National Institute
 of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
-
 *******************************************************************************/
 #include "resample.h"
 
@@ -37,7 +36,6 @@ void Resample::Init()
   _resizeFactor = 1.0;
   _srcSampleRate = 500;
   _tgtSampleRate = 500;
-  dirty = false;
 }
 
 // Copy function to make clones of an object.
@@ -49,7 +47,6 @@ void Resample::Copy( const Resample& aCopy )
   _resizeFactor = aCopy._resizeFactor;
   _srcSampleRate = aCopy._srcSampleRate;
   _tgtSampleRate = aCopy._tgtSampleRate;
-  dirty = true;
 }
 
 // Default constructor.
@@ -70,7 +67,6 @@ Resample::Resample( int srcSampleRate, int tgtSampleRate )
 
   _resizeFactor = (float)_tgtSampleRate / (float)_srcSampleRate;
 
-  dirty = true;
 }
 
 
@@ -85,32 +81,20 @@ cv::Mat Resample::resize( cv::Mat, NFIR::FilterMask*, Padding& )   // downsample
   cv::Mat mat;
   return mat;
 }
-void Resample::to_s() const { }   // print config params to console
+std::vector<std::string> Resample::to_s() const { std::vector<std::string> v; return v; }
 
-// Next, define accessors for all data that can be public. If
-// its not intended to be public, make it a private accessor.
-// First, define all the set methods. The "dirty" flag is not
-// necessary for completeness, but it makes life a LOT easier.
-
-int Resample::set_interpolationMethod( const std::string ) { int errorCode{0}; return errorCode; }
-int Resample::set_interpolationMethodAndFilterShape( const std::string, const std::string )
-{
-  int errorCode{0};
-  return errorCode;
-}
+// Define all the set methods.
+void Resample::set_interpolationMethod( const std::string ) { }
+void Resample::set_interpolationMethodAndFilterShape( const std::string,
+                                                      const std::string )
+{ }
 
 void Resample::set_srcSampleRate( const int& x )
 {
-  if ( _srcSampleRate != x )
-    dirty = true;
-
   _srcSampleRate = x;
 }
 void Resample::set_tgtSampleRate( const int& x )
 {
-  if ( _tgtSampleRate != x )
-    dirty = true;
-
   _tgtSampleRate = x;
 }
 
@@ -134,6 +118,16 @@ double Resample::get_resizeFactor(void) const
   return _resizeFactor;
 }
 
-std::string Resample::get_filterShape(void) const { std::string s{ "" }; return s; }
+// std::string Resample::get_filterShape(void) const { std::string s{ "" }; return s; }
+
+// uint32_t *Resample::get_filteredImageDimens(void) const
+// {
+//   return nullptr;
+// }
+
+// cv::Mat Resample::get_filteredImage(void) const
+// {
+//   return cv::Mat{};
+// }
 
 }   // End namespace

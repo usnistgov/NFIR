@@ -24,13 +24,13 @@ in order to perform the software development.  In no case does such
 identification imply recommendation or endorsement by the National Institute
 of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
-
 *******************************************************************************/
 #pragma once
-#ifdef _WIN32
-  #pragma warning( disable: 4514 )  // message(void): unreferenced inline function has been removed.
-#endif                              // Seems that latest version (since 20 Dec 2020) of VS has fixed this.
+// #ifdef _WIN32
+//   #pragma warning( disable: 4514 )  // message(void): unreferenced inline function has been removed.
+// #endif                              // Seems that latest version (since 20 Dec 2020) of VS has fixed this.
 
+#include "exceptions.h"
 #include "filter_mask.h"
 
 #include <opencv2/imgproc/imgproc.hpp>
@@ -40,31 +40,71 @@ identified are necessarily the best available for the purpose.
 // Type alias.
 typedef int InterpolationMethod;
 
+/**
+ * @brief Applied to source image prior to DFT.
+ * 
+ * Top and left sides are always zero.
+ */
 struct Padding {
   int top;
   int bottom;
   int left;
   int right;
 
-  void clear(void)
+  /**
+   * @brief Reset all four sides to zero, especially right and bottom.
+   * 
+   */
+  void reset(void)
   {
     top = 0;
     bottom = 0;
     left = 0;
     right = 0;
   }
+
+  /**
+   * @return std::string for entry into metadata
+   */
+  std::string to_s(void)
+  {
+    std::string s{"Image Padding: "};
+    s.append(   "top  : " + std::to_string(top) );
+    s.append( ", left : " + std::to_string(left) );
+    s.append( ", bot  : " + std::to_string(bottom) );
+    s.append( ", right: " + std::to_string(right) );
+    s.append( "\n" );
+    return s;
+  }
 };
 
 
 namespace NFIR {
 
+/**
+ * @brief Base class that is used via polymorphism to support resampling.
+ *
+ * Is never directly instantiated.
+ */
 class Resample
 {
 private:
-  bool dirty;       // Keep track of the object state.
 
 protected:
+  /** Resample configuration message for logging */
   std::string _configRecap;
+
+  /**
+   * @brief This image has been filtered but not yet downsampled.
+   * 
+   * Its dimensions are width and height of the zero-padded image.  This image
+   * is made available to the using software as proof that the lowpass filter
+   * has removed all image frequency components above the desired sample rate.
+   * See screen-shots of SIVV 1D power spectrum in README.
+   */
+  cv::Mat _filteredImagePriorToDownsample;
+  uint32_t *_filteredImageDimens;
+
   InterpolationMethod _interpolationMethod;
   double _resizeFactor;
   int _srcSampleRate;
@@ -92,23 +132,18 @@ public:
 
   // Overrides in derived class.
   virtual cv::Mat resize( cv::Mat );   // Upsample
-  virtual cv::Mat resize( cv::Mat, NFIR::FilterMask*, Padding& );   // Downsample
-  virtual void to_s(void) const;
+  virtual cv::Mat resize( cv::Mat, NFIR::FilterMask*, Padding& );  // Downsample
+  virtual std::vector<std::string> to_s(void) const;
 
-  // Next, define accessors for all data that can be public. If
-  // its not intended to be public, make it a private accessor.
-  // First, define all the set methods. The "dirty" flag is not
-  // necessary for completeness, but it makes life a LOT easier
-
-  virtual int set_interpolationMethod( const std::string );
-  virtual int set_interpolationMethodAndFilterShape( const std::string, const std::string );
+  // Declare set methods.
+  virtual void set_interpolationMethod( const std::string );
+  virtual void set_interpolationMethodAndFilterShape( const std::string,
+                                                      const std::string );
   void set_srcSampleRate( const int& );
   void set_tgtSampleRate( const int& );
 
 
-  // Now the data get functions. They cannot modify
-  // the object, they are all marked as const.
-  virtual std::string get_filterShape(void) const;
+  // Data get functions cannot modify the object, all declared as const.
   InterpolationMethod get_interpolationMethod(void) const;
   double get_resizeFactor(void) const;
   int get_srcSampleRate(void) const;

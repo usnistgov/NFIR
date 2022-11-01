@@ -26,34 +26,77 @@ of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
 *******************************************************************************/
 #pragma once
-#ifdef _WIN32
-  #pragma warning( disable: 4514 )  // message(void): unreferenced inline function has been removed.
-#endif                              // Seems that latest version (since 20 Dec 2020) of VS has fixed this.
 
-#include <exception>
-#include <string>
+#include <opencv2/core/core.hpp>
 
 namespace NFIR {
 
-/** Handle exceptions thrown by the Registrator constructor and subsequent method
-calls.
-*/
-class Miscue: public std::exception {
-
-  std::string _msg{""};
+/**
+ * @brief Base class that is used via polymorphism to support Ideal and Gaussian
+ * filter/masks.  Is never directly instantiated.
+ */
+class FilterMask
+{
 public:
   /**
-  @param msg error message
-  */
-  Miscue( const std::string &msg ) : _msg{"NFIR Exception: " + msg} {}
-
-  /**
-  @return text of the error message
-  */
-  const char* what() const noexcept override
+   * @brief Filter shapes used for downsample (only).
+   * Ideal and Gaussian (no Butterworth).
+   */
+  enum class FilterShape : unsigned
   {
-    return _msg.c_str();
-  }
+    ideal,
+    Gaussian
+  };
+
+
+protected:
+  double _maskRadiusFactor;
+  cv::Mat _theFilterMask;
+
+  int _srcSampleRate;
+  int _tgtSampleRate;
+
+  // Initialization function that resets all values.
+  void Init();
+
+  // Copy function to make clones of an object.
+  void Copy( const FilterMask& );
+
+public:
+  // Default constructor.
+  FilterMask();
+
+  // Copy constructor.
+  FilterMask( const FilterMask& );
+
+  // Full constructor with all accessible members defined.
+  FilterMask( int, int );
+
+  // Virtual destructor
+  virtual ~FilterMask() {}
+
+  // Override in derived class.
+  /** @brief ideal or Gaussian */
+  virtual FilterShape get_filterShape(void) const;
+  virtual void build( cv::Size );
+
+  void set_srcSampleRate( const int& );
+  void set_tgtSampleRate( const int& );
+
+
+  // Now the data get functions. They cannot modify
+  // the object, they are all marked as const.
+  int get_srcSampleRate(void) const;
+  int get_tgtSampleRate(void) const;
+  /** @brief tgtSampleRate / srcSampleRate */
+  double get_maskRadiusFactor(void) const;
+  cv::Mat get_theFilterMask(void) const;
+
+  // Implement a clone operator.
+  FilterMask Clone(void);
+
+  // Implement an assigment operator.
+  FilterMask operator=( const FilterMask& );
 };
 
 }   // End namespace

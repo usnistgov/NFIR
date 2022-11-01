@@ -24,7 +24,6 @@ in order to perform the software development.  In no case does such
 identification imply recommendation or endorsement by the National Institute
 of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
-
 *******************************************************************************/
 #include "filter_mask.h"
 
@@ -36,8 +35,6 @@ void FilterMask::Init()
   _srcSampleRate = 500;
   _tgtSampleRate = 500;
   _maskRadiusFactor = 1.0;
-  // filterShape = FilterShape::ideal;
-  dirty = false;
 }
 
 // Copy function to make clones of an object.
@@ -48,7 +45,6 @@ void FilterMask::Copy( const FilterMask& aCopy )
   _srcSampleRate = aCopy._srcSampleRate;
   _tgtSampleRate = aCopy._tgtSampleRate;
   _maskRadiusFactor = aCopy._maskRadiusFactor;
-  dirty = true;
 }
 
 // Default constructor.
@@ -63,19 +59,17 @@ FilterMask::FilterMask( const FilterMask& aCopy )
 }
 
 /**
-Base class constructor.  Calculates the filter/mask radius factor.
-
-@param srcSampleRate source image ppi to be resampled
-@param tgtSampleRate target image ppi of resulting image
-*/
+ * @brief Base class constructor.  Calculates the filter/mask radius factor.
+ *
+ * @param srcSampleRate source image ppi to be resampled
+ * @param tgtSampleRate target image ppi of resulting image
+ */
 FilterMask::FilterMask( int srcSampleRate, int tgtSampleRate )
 {
   _srcSampleRate = srcSampleRate;
   _tgtSampleRate = tgtSampleRate;
 
   _maskRadiusFactor = (float)_tgtSampleRate / (float)_srcSampleRate;
-
-  dirty = true;
 }
 
 
@@ -93,9 +87,9 @@ double FilterMask::get_maskRadiusFactor(void) const
   return _maskRadiusFactor;
 }
 
-cv::Mat FilterMask::get_theMask(void) const
+cv::Mat FilterMask::get_theFilterMask(void) const
 {
-  return _theMask;
+  return _theFilterMask;
 }
 
 // *********

@@ -24,80 +24,48 @@ in order to perform the software development.  In no case does such
 identification imply recommendation or endorsement by the National Institute
 of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
-
 *******************************************************************************/
 #pragma once
 
-#include <opencv2/core/core.hpp>
+#include "filter_mask.h"
 
 namespace NFIR {
 
-/**
-Base class that is used via polymorphism to support Ideal and Gaussian
-filter/masks.  Is never directly instantiated.
-*/
-class FilterMask
+/** @brief Support the ideal lowpass filter used for downsample. */
+class Ideal : public FilterMask
 {
-public:
-  /**
-  Filter shapes used for downsample (only).
-  Ideal and Gaussian (no Butterworth).
-  */
-  enum class FilterShape : unsigned
-  {
-    ideal,
-    gaussian
-  };
-
 private:
-  bool dirty;       // Keep track of the object state.
-
-protected:
-  double _maskRadiusFactor;
-  cv::Mat _theMask;
-
-  int _srcSampleRate;
-  int _tgtSampleRate;
-
-  // Initialization function that resets all values.
-  void Init();
-
-  // Copy function to make clones of an object.
-  void Copy( const FilterMask& );
+  FilterShape _filterShape;
 
 public:
   // Default constructor.
-  FilterMask();
+  Ideal();
 
   // Copy constructor.
-  FilterMask( const FilterMask& );
+  Ideal( const Ideal& );
 
-  // Full constructor with all accessible members defined.
-  FilterMask( int, int );
+  // Full constructor.
+  Ideal( int , int );
 
   // Virtual destructor
-  virtual ~FilterMask() {}
+  virtual ~Ideal() {}
 
-  // Override in derived class.
-  virtual FilterShape get_filterShape(void) const;
-  virtual void build( cv::Size );
+  FilterShape get_filterShape(void) const override;
 
-  void set_srcSampleRate( const int& );
-  void set_tgtSampleRate( const int& );
+  /**
+  Build the ideal filter that is same size as the padded source image.
+  Since this is a low-pass filter, all values within the ellipse are set
+  to **1.0**, all those outside set to **0.0**.  This filter is multiplied
+  with the source image in the frequency domain.
+  */
+  void build( cv::Size ) override;
 
-
-  // Now the data get functions. They cannot modify
-  // the object, they are all marked as const.
-  int get_srcSampleRate(void) const;
-  int get_tgtSampleRate(void) const;
-  double get_maskRadiusFactor(void) const;
-  cv::Mat get_theMask(void) const;
 
   // Implement a clone operator.
-  FilterMask Clone(void);
+  Ideal Clone(void);
 
   // Implement an assigment operator.
-  FilterMask operator=( const FilterMask& );
+  Ideal operator=( const Ideal& );
 };
 
 }   // End namespace

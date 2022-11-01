@@ -24,13 +24,11 @@ in order to perform the software development.  In no case does such
 identification imply recommendation or endorsement by the National Institute
 of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
-
 *******************************************************************************/
 #include "resample_up.h"
 
-#include <iostream>
-
 static InterpolationMethod determineInterpolation(int);
+
 
 namespace NFIR {
 
@@ -74,9 +72,11 @@ interpolation method.
 */
 cv::Mat Upsample::resize( cv::Mat srcImg )
 {
-  cv::Mat tgtImg;
-  cv::resize( srcImg, tgtImg, cv::Size(0, 0), _resizeFactor, _resizeFactor, _interpolationMethod );
-  return tgtImg;
+  cv::Mat resampledImg;
+  cv::resize( srcImg, resampledImg, cv::Size(0, 0),
+              _resizeFactor, _resizeFactor, _interpolationMethod );
+  // resampledImg.release();  // Force test NFIR::Miscue
+  return resampledImg;
 }
 
 
@@ -91,7 +91,7 @@ cv::Mat Upsample::resize( cv::Mat srcImg )
 cv::Mat Upsample::resize( cv::Mat srcImg, NFIR::FilterMask* filterMask, Padding& pads )
 {
   filterMask->~FilterMask();
-  pads.clear();
+  pads.reset();
   return srcImg;
 }
 
@@ -110,48 +110,47 @@ Upsample Upsample::operator=( const Upsample& aCopy )
 }
 
 
-/** Implements the recommended interpolation method if this config param
-is not set by user.
-
-@param im interpolation method `bicubic` or `bilinear`
-
-@return 0 upon success, -1 for invalid interpolation method
+/**
+ * @brief Implements the recommended interpolation method if this config
+ * param is not set by user.
+ *
+ * @param im interpolation method `bicubic` or `bilinear`
+ *
+ * @throw invalid interpolation method
 */
-int Upsample::set_interpolationMethod( const std::string im )
+void Upsample::set_interpolationMethod( const std::string im )
 {
+  _configRecap = "Interpolation method specified by user (per config).";
   if( im == "bicubic" )
   {
-    _configRecap = "Interpolation method specified by user (per config).";
     _interpolationMethod = cv::INTER_CUBIC;
   }
   else if( im == "bilinear" )
   {
-    _configRecap = "Interpolation method specified by user (per config).";
     _interpolationMethod = cv::INTER_LINEAR;
   }
   else if( im == "" )
   {
     _configRecap = "Using recommended interpolation method.";
-    _interpolationMethod = determineInterpolation(get_srcSampleRate());
+    _interpolationMethod = determineInterpolation( get_srcSampleRate() );
   }
   else
-    return -1;
-  return 0;
+    throw NFIR::Miscue( "NFIR lib: invalid interpolation method: " + im );
 }
 
 
-/** Print to console this instance configuration.
-*/
-void Upsample::to_s(void) const
+/** @brief This instance configuration for logging. */
+std::vector<std::string> Upsample::to_s(void) const
 {
-  std::cout << "UPSAMPLE configuration:" << std::endl;
-  std::cout << "  source sample rate:  " << get_srcSampleRate() << std::endl;
-  std::cout << "  target sample rate:  " << get_tgtSampleRate() << std::endl;
-  std::cout << "  resize factor:       " << get_resizeFactor() << std::endl;
-  std::cout << std::endl;
-  std::cout << "Interpolation config: " << _configRecap << std::endl;
-  std::cout << "  interpolation method:  " << get_interpolationMethod()
-            << "  (1=bilinear, 2=bicubic)" << std::endl;
+  std::vector<std::string> v;
+  v.push_back("UPSAMPLE configuration:");
+  v.push_back("  source sample rate:  " + std::to_string(get_srcSampleRate()) );
+  v.push_back("  target sample rate:  " + std::to_string(get_tgtSampleRate()) );
+  v.push_back("  resize factor:       " + std::to_string(get_resizeFactor()) );
+  v.push_back("Interpolation: " + _configRecap );
+  v.push_back("  interpolation method:  " + std::to_string(get_interpolationMethod())
+            + "  (1=bilinear, 2=bicubic)\n" );
+  return v;
 }
 
 }   // End namespace

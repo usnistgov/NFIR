@@ -24,49 +24,30 @@ in order to perform the software development.  In no case does such
 identification imply recommendation or endorsement by the National Institute
 of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
-
 *******************************************************************************/
+
 #pragma once
 
-#include "resample.h"
+#include "exceptions.h"
 
 #include <string>
 
+#define NFIR_VERSION "0.2.0"
+
 namespace NFIR {
 
-class Downsample : public Resample
-{
-private:
-  bool dirty;       // Keep track of the object state.
-  std::string _filterShape;
+std::string printVersion(void);
+void resample( uint8_t* srcImage, uint8_t** tgtImage,
+               int srcSampleRate, int tgtSampleRate, const std::string &,
+               std::string interpolationMethod, const std::string &,
+               uint32_t *imageWidth, uint32_t *imageHeight,
+               size_t *imgBufSize,
+               const std::string &, const std::string &,
+               std::vector<std::string> & );
 
-public:
-  // Default constructor.
-  Downsample();
-
-  // Copy constructor.
-  Downsample( const Downsample& );
-
-  // Full constructor with all accessible members defined.
-  Downsample( int, int );
-
-  // Virtual destructor
-  virtual ~Downsample() {}
-
-
-  cv::Mat resize( cv::Mat ) override;
-  cv::Mat resize( cv::Mat, NFIR::FilterMask*, Padding& ) override;
-  void to_s(void) const override;
-  // int set_interpolationMethod(const std::string _s) override;
-  int set_interpolationMethodAndFilterShape( const std::string, const std::string ) override;
-
-  std::string get_filterShape(void) const override;
-
-  // Implement a clone operator.
-  Downsample Clone(void);
-
-  // Implement an assigment operator.
-  Downsample operator=( const Downsample& );
-};
-
-}   // End namespace
+void get_filteredImage( uint8_t** tgtImage,
+                        const std::string &encodeCompression,
+                        size_t   *imgBufSize,
+                        uint32_t *imageWidth,
+                        uint32_t *imageHeight );
+}

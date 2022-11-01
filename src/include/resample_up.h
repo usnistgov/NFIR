@@ -24,32 +24,43 @@ in order to perform the software development.  In no case does such
 identification imply recommendation or endorsement by the National Institute
 of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
-
 *******************************************************************************/
-
-
-
-/*******************************************************************************
-
-NOTE: source image (srcImage) must be 8-bit grayscale. Target image (tgtImage)
-      will be 8-bit grayscale.
-
-*******************************************************************************/
-
 #pragma once
 
-#include "exceptions.h"
-
-#include <opencv2/opencv.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <string>
-
-#define NFIR_VERSION "0.1.1"
+#include "resample.h"
 
 namespace NFIR {
 
-std::string printVersion(void);
-void resample( cv::Mat &srcImage, cv::Mat &tgtImage,
-               int srcSampleRate, int tgtSampleRate,
-               std::string interpolationMethod, std::string filterShape );
-}
+/** @brief Support upsample process. */
+class Upsample : public Resample
+{
+private:
+  bool dirty;       // Keep track of the object state.
+
+public:
+  // Default constructor.
+  Upsample();
+
+  // Copy constructor.
+  Upsample( const Upsample& );
+
+  // Full constructor with all accessible members defined.
+  Upsample( int, int );
+
+  // Virtual destructor
+  virtual ~Upsample() {}
+
+
+  cv::Mat resize( cv::Mat ) override;
+  cv::Mat resize( cv::Mat, NFIR::FilterMask*, Padding& ) override;
+  std::vector<std::string> to_s(void) const override;
+  void set_interpolationMethod( const std::string ) override;
+
+  // Implement a clone operator.
+  Upsample Clone(void);
+
+  // Implement an assigment operator.
+  Upsample operator=( const Upsample& );
+};
+
+}   // End namespace
