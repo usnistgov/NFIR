@@ -28,6 +28,7 @@ identified are necessarily the best available for the purpose.
 // #include "exceptions.h"
 #include "filter_mask_gaussian.h"
 #include "filter_mask_ideal.h"
+#include "nfimm.h"
 #include "nfir_lib.h"
 #include "resample_down.h"
 #include "resample_up.h"
@@ -123,6 +124,7 @@ void resample( uint8_t *srcImage, uint8_t **tgtImage,
                uint32_t *imageWidth, uint32_t *imageHeight,
                size_t *imgBufSize,
                const std::string &srcComp, const std::string &tgtComp,
+               std::vector<std::string> &vecPngTextChunk,
                std::vector<std::string> &log
               )
 {
@@ -291,8 +293,6 @@ void resample( uint8_t *srcImage, uint8_t **tgtImage,
     // Encode image to stream of bytes.
     encComp.append( srcComp );
     cv::imencode( encComp, tgtImageMatrix, vecTgtImage );
-    // Copy the vector to an array of bytes(uint8_t) for call to NFIMM (NIST
-    // Fingerprint Image Metadata Modifier library, coming soon...).
 
     log.push_back( "DOWNSAMPLE target img vector size: "
                   + std::to_string(vecTgtImage.size()) );
@@ -301,19 +301,50 @@ void resample( uint8_t *srcImage, uint8_t **tgtImage,
     log.push_back( "DOWNSAMPLE target img WxH: "
                   + std::to_string(tgtImageMatrix.cols) + "x"
                   + std::to_string(tgtImageMatrix.rows) );
+    log.push_back( "DOWNSAMPLE target img num channels: "
+                  + std::to_string(tgtImageMatrix.channels()) );
 
-    tgtImageResampled = new uint8_t[vecTgtImage.size()];
-    for( size_t i=0; i<vecTgtImage.size(); i++ ) {
-      tgtImageResampled[i] = vecTgtImage.at(i);
+    // NFIMM (NIST Fingerprint Image Metadata Modifier library)
+    {
+      // Initialize the NFIMM metadata params
+      NFIMM::MetadataParameters mp( srcComp );
+      mp.destImg.resolution.horiz = tgtSampleRate;
+      mp.destImg.resolution.vert = tgtSampleRate;
+      mp.set_destImgSampleRateUnits( srUnits );
+      mp.destImg.textChunk = vecPngTextChunk;
+      mp.srcImg.buffer = NFIMM::NFIMM::readImageFileIntoBuffer( vecTgtImage );
+
+      NFIMM::NFIMM nfimm_mp( &mp );
+      try
+      {
+        nfimm_mp.modify();
+        log.push_back( mp.to_s() );
+      }
+      catch( const NFIMM::Miscue &err ) {
+        throw NFIR::Miscue( err.what() );
+      }
+
+      tgtImageResampled = new uint8_t[mp.destImg.bufferSize];
+      for( size_t i=0; i<mp.destImg.bufferSize; i++ ) {
+        tgtImageResampled[i] = mp.destImg.buffer[i];
+      }
+      *tgtImage = tgtImageResampled;
+      *imgBufSize = mp.destImg.bufferSize;
     }
+
+
+
+
+    // bxb 4 lines below original, working
+    // tgtImageResampled = new uint8_t[vecTgtImage.size()];
+    // for( size_t i=0; i<vecTgtImage.size(); i++ ) {
+    //   tgtImageResampled[i] = vecTgtImage.at(i);
+    // }
     // Update the function parameter for caller to use to write image.
     // In the event that NFIMM is successfully called, this value is
     // updated again.
-    *tgtImage = tgtImageResampled;
-    *imgBufSize = vecTgtImage.size();
-
-    log.push_back( "DOWNSAMPLE target img num channels: "
-                  + std::to_string(tgtImageMatrix.channels()) );
+    // *tgtImage = tgtImageResampled;
+    // *imgBufSize = vecTgtImage.size();
 
     // Clean up
     delete resampler;
@@ -338,10 +369,10 @@ void resample( uint8_t *srcImage, uint8_t **tgtImage,
 std::string printVersion()
 {
   std::string s{ "NFIR (NIST Fingerprint Image Resampler) version: " };
-  std::string v{ NFIR_VERSION };
-  s.append(v);
+  s.append( NFIR_VERSION );
   s.append( "\nOpenCV version: ");
   s.append(CV_VERSION);
+  s.append( "\n" + NFIMM::printVersion() );
   return s;
 }
 

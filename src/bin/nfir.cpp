@@ -32,6 +32,7 @@ identified are necessarily the best available for the purpose.
 #include "CLI11.hpp"
 #include "glob.h"
 #include "nfir_lib.h"
+#include "termcolor.h"
 
 
 #include <chrono>
@@ -103,6 +104,9 @@ int main(int argc, char** argv)
   app.add_option( "-d, --tgt-file", tgtFile, "Target imagery file (absolute or relative)" )
     ->needs(sf_opt);
   
+  std::vector<std::string> vecPngTextChunk{""};
+  app.add_option( "-e, --png-text-chunk", vecPngTextChunk, "list of 'tEXt' chunks in format 'keyword:text'" );
+
   std::string srcDir {};
   app.add_option( "-s, --src-dir", srcDir, "Source imagery dir (absolute or relative)" )
     ->check(CLI::ExistingDirectory);
@@ -276,6 +280,7 @@ int main(int argc, char** argv)
     ifsSrcFile.close();
 
     srcPath = it;
+    std::cout << termcolor::blue << "src image: " << srcPath << termcolor::grey << std::endl;
 
     // Init NFIR resampler params.
     uint8_t* srcImageAry{NULL};       // source image data
@@ -298,7 +303,7 @@ int main(int argc, char** argv)
                         srcSampleRate, tgtSampleRate, "inch",
                         interpolationMethod, filterShape,
                         &imageWidth, &imageHeight, &lenSrcFileBlock,
-                        srcImageFormat, tgtImageFormat,
+                        srcImageFormat, tgtImageFormat, vecPngTextChunk,
                         logRuntime );
 
         std::ofstream outFile( tgtPath, std::ios::out | std::ios::binary );
@@ -335,9 +340,10 @@ int main(int argc, char** argv)
 
       }
       catch( const NFIR::Miscue &e ) {
-        std::cout << e.what() << std::endl;
-        std::cout << "NFIR runtime log prior-to exception:" << std::endl;
+        std::cout << termcolor::red << e.what() << std::endl;
+        std::cout << "NFIR runtime log prior-to this exception:" << std::endl;
         for( auto s : logRuntime ) { std::cout << s << std::endl; }
+        std::cout << termcolor::grey;
         return -1;
       }
     }

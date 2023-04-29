@@ -29,7 +29,12 @@ if(_WIN32_64)
   message(STATUS "OpenCV_LIBS found as: '${OpenCV_LIBS}'")
 
   # line below ALWAYS required
-  target_include_directories(${PROJECT_NAME} PUBLIC ${OpenCV_INCLUDE_DIRS})
+  target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_INCLUDE_DIRS} )
+
+  # NFIMM
+  target_include_directories(${PROJECT_NAME} PRIVATE
+  D:/SourceCode/GitLab/ProjectSoftware/NFIMM_NIST/TheLibrary/NFIMM/src/include  )
+  target_link_libraries(${PROJECT_NAME} R:/NFIMM/src/lib/Release/nfimm.lib )
 
 else()
   message(STATUS "LIB: CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")

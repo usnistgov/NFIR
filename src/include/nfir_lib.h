@@ -43,6 +43,7 @@ void resample( uint8_t* srcImage, uint8_t** tgtImage,
                uint32_t *imageWidth, uint32_t *imageHeight,
                size_t *imgBufSize,
                const std::string &, const std::string &,
+               std::vector<std::string> &,
                std::vector<std::string> & );
 
 void get_filteredImage( uint8_t** tgtImage,
