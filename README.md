@@ -25,7 +25,7 @@ For the **NFIR** executable, runtime configuration parameters include:
 
 Based on the source and target sample rates, the software performs the appropriate resampling.  This ratio of (target / source) sample rate is the **resize factor**.
 
-Any source and target sample rate is accepted.  The initial release and subsequent revisions of this software was only tested on source images with the source and target sample rates in Table 1; it has since been proven to perform correctly using any sample rates (source image sample rate must be well-known).
+Any valid and reasonable source and target sample rate is accepted.  The initial release and subsequent revisions of this software was only tested on source images with the source and target sample rates in Table 1; it has since been proven to perform correctly using any sample rates (source image sample rate must be well-known).
 
 Resampling | Src ppi             | Tgt ppi
 -----------|---------------------|-----------
@@ -35,10 +35,19 @@ DOWN       | 600, 1000, and 1200 | 500
 **Table 1 - Tested sample rates**
 
 <span class="redc">
-Additionally, while <b>NFIR</b> utilizes image compression formats supported by OpenCV, <b>only images using PNG, JPG, and BMP compression have been tested.</b>
+Additionally, while <b>NFIR</b> utilizes image compression formats supported by OpenCV, <b>only images using PNG, BMP, JPG, and PGM compression have been tested.</b>
 </span>
 
-----------
+## NFIR and Image Headers
+Image files usually contain "headers" that contain image metadata. When an image is resampled, its resolution and overall size is changed. The metadata should be updated in the resampled target image.  **NFIR** is supported by **NFIMM** (NIST Fingerprint Image Metadata Modification) library under the following conditions:
+
+* Source and target image format must be the same
+* Source and target image format must be either PNG or BMP (see NFIMM spec for latest formats)
+
+While it is possible for NFIR to convert image formats, NFIMM does not (yet) support conversion.
+
+
+
 ## NFIR Core Algorithm
 **NFIR** supports the most common source and target sample rates that are most likely encountered in the field.  By programmatically setting the default filter-mask and interpolation configurations per Tables 2 and 3, the user is "freed" from having to "guess" the best combination of parameters.
 

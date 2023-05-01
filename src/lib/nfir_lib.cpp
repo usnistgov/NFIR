@@ -71,62 +71,17 @@ cv::Mat filteredImgPriorToDownsample;
 /**
  * @brief Primary API to the resampler process that generates a new image
  * at the desired sample rate.
- *
- * This method is the interface into the NIST Fingerprint Image Resampler library.
- * The caller only need use this method to perform the entire, resample process
- * on a single image.
- *
- * It instantiates the up- or down-sample object based on the source and target
- * sample rates.
- *
- * The up or downsample *resize factor* = (target rate)/(source rate).
- *
- * For upsample: perform the resize and return.
- *
- * For downsample:
- * - pad the source image
- * - build the lowpass filter
- * - Fourier-transform the padded image
- * - matrix multiply with the filter
- * - Inverse-Fourier transform the product
- * - strip the image padding
- * - perform final resize
- *
- * OpenCV requires that the source image must be 8-bit, single-channel. Attempts
- * are made to convert the source image, if necessary, and update the log if
- * conversion was performed.  In the event that this function returns unsuccesfully
- * and without throwing exception, check the number of channels and pixel bit-depth
- * of the source image.
- *
- * @param srcImage IN pointer to source image
- * @param tgtImage OUT pointer to generated, target image
- * @param srcSampleRate value must reflect srUnits
- * @param tgtSampleRate value must reflect srUnits
- * @param srUnits sample rate [ inch | meter | other ]
- * @param interpolationMethod [ bilinear | bicubic (the default) ]
- * @param filterShape [ ideal | Gaussian (the default) ]
- * @param imageWidth  IN -  width of source image,
-                      OUT - width of generated, target image
- * @param imageHeight IN -  height of source image,
- *                    OUT - height of generated, target image
- * @param imgBufSize  IN -  length of the source image buffer
- *                    OUT - length of the generated, target image buffer
- * @param srcComp compression format of source image
- * @param tgtComp compression format of target image
- * @param log resample metadata for reporting to caller
- *
- * @throw NFIR::Miscue for invalid sample rate(s), interpolation method,
- *              downsample filter shape, or cannot resize image
  */
-void resample( uint8_t *srcImage, uint8_t **tgtImage,
-               int srcSampleRate, int tgtSampleRate, const std::string &srUnits,
-               std::string interpolationMethod, const std::string &filterShape,
-               uint32_t *imageWidth, uint32_t *imageHeight,
-               size_t *imgBufSize,
-               const std::string &srcComp, const std::string &tgtComp,
-               std::vector<std::string> &vecPngTextChunk,
-               std::vector<std::string> &log
-              )
+void
+resample( uint8_t *srcImage, uint8_t **tgtImage,
+          int srcSampleRate, int tgtSampleRate, const std::string &srUnits,
+          std::string interpolationMethod, const std::string &filterShape,
+          uint32_t *imageWidth, uint32_t *imageHeight,
+          size_t *imgBufSize,
+          const std::string &srcComp, const std::string &tgtComp,
+          std::vector<std::string> &vecPngTextChunk,
+          std::vector<std::string> &log
+        )
 {
   std::vector<uint8_t> vecSrcImg;
   // Copy the srcImage into vector for decoding
@@ -304,23 +259,29 @@ void resample( uint8_t *srcImage, uint8_t **tgtImage,
     log.push_back( "DOWNSAMPLE target img num channels: "
                   + std::to_string(tgtImageMatrix.channels()) );
 
-    // NFIMM (NIST Fingerprint Image Metadata Modifier library)
+    // if( srcComp == "png" || srcComp == "bmp" )
+    if( false )
     {
-      // Initialize the NFIMM metadata params
+      // NFIMM (NIST Fingerprint Image Metadata Modifier library)
       NFIMM::MetadataParameters mp( srcComp );
+      // Initialize the NFIMM metadata params
       mp.destImg.resolution.horiz = tgtSampleRate;
       mp.destImg.resolution.vert = tgtSampleRate;
       mp.set_destImgSampleRateUnits( srUnits );
       mp.destImg.textChunk = vecPngTextChunk;
       mp.srcImg.buffer = NFIMM::NFIMM::readImageFileIntoBuffer( vecTgtImage );
 
-      NFIMM::NFIMM nfimm_mp( &mp );
       try
       {
+        NFIMM::NFIMM nfimm_mp( &mp );
         nfimm_mp.modify();
+        // Push the NFIMM logging data to the NFIR log
         log.push_back( mp.to_s() );
+        for( std::string s : mp.log ) { log.push_back( s ); }
       }
       catch( const NFIMM::Miscue &err ) {
+        log.push_back( "NFIMM modify() failed, log prior to exception below:" );
+        log.push_back( mp.to_s() );
         throw NFIR::Miscue( err.what() );
       }
 
@@ -331,20 +292,16 @@ void resample( uint8_t *srcImage, uint8_t **tgtImage,
       *tgtImage = tgtImageResampled;
       *imgBufSize = mp.destImg.bufferSize;
     }
-
-
-
-
-    // bxb 4 lines below original, working
-    // tgtImageResampled = new uint8_t[vecTgtImage.size()];
-    // for( size_t i=0; i<vecTgtImage.size(); i++ ) {
-    //   tgtImageResampled[i] = vecTgtImage.at(i);
-    // }
-    // Update the function parameter for caller to use to write image.
-    // In the event that NFIMM is successfully called, this value is
-    // updated again.
-    // *tgtImage = tgtImageResampled;
-    // *imgBufSize = vecTgtImage.size();
+    else
+    {
+      tgtImageResampled = new uint8_t[vecTgtImage.size()];
+      for( size_t i=0; i<vecTgtImage.size(); i++ ) {
+        tgtImageResampled[i] = vecTgtImage.at(i);
+      }
+      // Update the function parameter for caller to use to write image.
+      *tgtImage = tgtImageResampled;
+      *imgBufSize = vecTgtImage.size();
+    }
 
     // Clean up
     delete resampler;
@@ -363,10 +320,8 @@ void resample( uint8_t *srcImage, uint8_t **tgtImage,
 }
 
 
-/**
- * @return versions of NFIR and OpenCV 
- */
-std::string printVersion()
+std::string
+printVersion()
 {
   std::string s{ "NFIR (NIST Fingerprint Image Resampler) version: " };
   s.append( NFIR_VERSION );
@@ -378,16 +333,6 @@ std::string printVersion()
 
 /**
  * @brief Additional API to get the filtered image prior to downsample.
- * 
- * This intermediate image has been cropped of its zero-padding but not (yet)
- * been downsampled.  It is encoded per the compression parameter.  The encoded
- * image is "vectorized" for return.
- * 
- * @param filteredImage OUT pointer to image
- * @param encodeCompression desired compression of filteredImage
- * @param imgBufSize OUT size of filteredImage array
- * @param imageWidth OUT pixels
- * @param imageHeight OUT pixels
  */
 void get_filteredImage( uint8_t** filteredImage,
                         const std::string &encodeCompression,

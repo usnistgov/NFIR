@@ -36,8 +36,65 @@ identified are necessarily the best available for the purpose.
 
 namespace NFIR {
 
-std::string printVersion(void);
-void resample( uint8_t* srcImage, uint8_t** tgtImage,
+/**
+ * @return versions of NFIR, NFIMM, and OpenCV 
+ */
+std::string
+printVersion(void);
+
+
+/**
+ * @brief Primary API to the resampler process that generates a new image
+ * at the desired sample rate.
+ *
+ * This method is the interface into the NIST Fingerprint Image Resampler library.
+ * The caller only need use this method to perform the entire, resample process
+ * on a single image.
+ *
+ * It instantiates the up- or down-sample object based on the source and target
+ * sample rates.
+ *
+ * The up- or down-sample *resize factor* = (target rate)/(source rate).
+ *
+ * For upsample: perform the resize and return.
+ *
+ * For downsample:
+ * - pad the source image
+ * - build the lowpass filter
+ * - Fourier-transform the padded image
+ * - matrix multiply with the filter
+ * - Inverse-Fourier transform the product
+ * - strip the image padding
+ * - perform final resize
+ *
+ * OpenCV requires that the source image must be 8-bit, single-channel. Attempts
+ * are made to convert the source image to single-channel, if necessary, and
+ * update the log if conversion was performed.  In the event that this function
+ * returns unsuccesfully and without throwing exception, check the number of
+ * channels and pixel bit-depth of the source image.
+ *
+ * @param srcImage IN pointer to source image
+ * @param tgtImage OUT pointer to generated, target image
+ * @param srcSampleRate value must reflect srUnits
+ * @param tgtSampleRate value must reflect srUnits
+ * @param srUnits sample rate [ inch | meter | other ]
+ * @param interpolationMethod [ bilinear | bicubic (the default) ]
+ * @param filterShape [ ideal | Gaussian (the default) ]
+ * @param imageWidth  IN -  width of source image,
+                      OUT - width of generated, target image
+ * @param imageHeight IN -  height of source image,
+ *                    OUT - height of generated, target image
+ * @param imgBufSize  IN -  length of the source image buffer
+ *                    OUT - length of the generated, target image buffer
+ * @param srcComp compression format of source image
+ * @param tgtComp compression format of target image
+ * @param log resample metadata for reporting to caller
+ *
+ * @throw NFIR::Miscue for invalid sample rate(s), interpolation method,
+ *              downsample filter shape, or cannot resize image
+ */
+void
+resample( uint8_t* srcImage, uint8_t** tgtImage,
                int srcSampleRate, int tgtSampleRate, const std::string &,
                std::string interpolationMethod, const std::string &,
                uint32_t *imageWidth, uint32_t *imageHeight,
@@ -46,7 +103,22 @@ void resample( uint8_t* srcImage, uint8_t** tgtImage,
                std::vector<std::string> &,
                std::vector<std::string> & );
 
-void get_filteredImage( uint8_t** tgtImage,
+/**
+ * @brief Additional API to get the filtered image prior to downsample.
+ *
+ * This intermediate image has been cropped of its zero-padding but not (yet)
+ * been downsampled.  It is encoded per the compression parameter.  The encoded
+ * image is "vectorized" for return.
+ *
+ * @param filteredImage OUT pointer to image
+ * @param encodeCompression desired compression of filteredImage
+ * @param imgBufSize OUT size of filteredImage array
+ * @param imageWidth OUT pixels
+ * @param imageHeight OUT pixels
+ */
+
+void
+get_filteredImage( uint8_t** tgtImage,
                         const std::string &encodeCompression,
                         size_t   *imgBufSize,
                         uint32_t *imageWidth,
