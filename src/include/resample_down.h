@@ -35,7 +35,6 @@ namespace NFIR {
 class Downsample : public Resample
 {
 private:
-  // bool dirty;       // Keep track of the object state.
   std::string _filterShape;
 
 public:
@@ -55,7 +54,7 @@ public:
   Downsample( int, int );
 
   // Virtual destructor
-  virtual ~Downsample() {}
+  virtual ~Downsample() { delete [] _filteredImageDimens; }
 
 
   /** @brief Used to upsample. */

@@ -257,6 +257,11 @@ int main(int argc, char** argv)
   }
 
   auto startStamp = std::chrono::system_clock::now();
+  std::time_t startTime = std::chrono::system_clock::to_time_t( startStamp );
+  std::string tgtFname;
+
+  vecPngTextChunk.push_back( "Description:image resamp from "
+    + std::to_string(srcSampleRate) + " by NFIRv" + NFIR::getVersion() );
 
   // START LOOP through all src images.
   for( auto it:listSrcImages )
@@ -265,7 +270,7 @@ int main(int argc, char** argv)
       tgtPath = tgtFile;
     }
     else {                  // source image(s) specified by dir in config
-      std::string tgtFname = buildTargetImageFilename( it, tgtImageFormat );
+      tgtFname = buildTargetImageFilename( it, tgtImageFormat );
       tgtPath = tgtDir + tgtFname;
     }
 
@@ -280,7 +285,10 @@ int main(int argc, char** argv)
     ifsSrcFile.close();
 
     srcPath = it;
-    std::cout << termcolor::blue << "src image: " << srcPath << termcolor::grey << std::endl;
+    std::cout << termcolor::blue
+              << "-------------------------------------------" << std::endl;
+    std::cout << "src image: " << srcPath << std::endl;
+    std::cout << "tgt image: " << tgtPath << termcolor::grey << std::endl;
 
     // Init NFIR resampler params.
     uint8_t* srcImageAry{NULL};       // source image data
@@ -305,7 +313,6 @@ int main(int argc, char** argv)
                         &imageWidth, &imageHeight, &lenSrcFileBlock,
                         srcImageFormat, tgtImageFormat, vecPngTextChunk,
                         logRuntime );
-
         std::ofstream outFile( tgtPath, std::ios::out | std::ios::binary );
         if( outFile.is_open() )
         {
@@ -320,12 +327,12 @@ int main(int argc, char** argv)
 
         // {
         //   // Access for the intermediate, filtered image prior to downsample.
-        //   // Uncomment this scope/section and set the tgtPath appropriately.
+        //   // Uncomment this scope/section and set the filteredPath appropriately.
         //   NFIR::get_filteredImage( tgtImageAry, srcImageFormat, &lenSrcFileBlock, &imageWidth, &imageHeight );
         //   std::cout << "intermediate image Width:  " << imageWidth << std::endl;
         //   std::cout << "intermediate image Height: " << imageHeight << std::endl;
         //   std::cout << "intermediate image vector length: " << lenSrcFileBlock << std::endl;
-        //   // std::string filteredPath{""};
+        //   std::string filteredPath{""};
         //   std::ofstream outFileIntermediateImage( filteredPath, std::ios::out | std::ios::binary );
         //   if( outFileIntermediateImage.is_open() )
         //   {
@@ -334,7 +341,7 @@ int main(int argc, char** argv)
         //   }
         //   else
         //   {
-        //     throw NFIR::Miscue( "Cannot open file for write: " + tgtPath );
+        //     throw NFIR::Miscue( "Cannot open file for write: " + filteredPath );
         //   }
         // }
 
@@ -359,13 +366,19 @@ int main(int argc, char** argv)
       }
       else
       {
-        std::cout << "-------------------------------------------" << std::endl;
         std::cout << "srcPath: " << srcPath << std::endl;
         std::cout << "tgtPath: " << tgtPath << std::endl;
         for( auto s : logRuntime ) { std::cout << s << std::endl; }
         std::cout << "RESAMPLE complete: " << tmp_count << " of " << listSrcImages.size() << std::endl;
       }
     }
+
+    // clean up
+    delete [] srcFileMemBlock;
+    delete [] srcImageAry;
+    delete [] *tgtImageAry;
+      // char key_press{};
+      // std::cin >> key_press;
 
   }   // END LOOP through all src images.
 
@@ -375,7 +388,8 @@ int main(int argc, char** argv)
   std::chrono::duration<double> elapsedSeconds{ endStamp-startStamp };
 
   std::cout << "Total RESAMPLED images count: " << tmp_count << std::endl;
-  std::cout << "Finished computation: " << std::ctime(&endTime)
+  std::cout << "Started resample: " << std::ctime(&startTime);
+  std::cout << "Finished resample: " << std::ctime(&endTime)
             << "Elapsed time: " << elapsedSeconds.count() << "s\n";
   return 0;
 }

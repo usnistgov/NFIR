@@ -44,18 +44,16 @@ Upsample::Upsample( const Upsample& aCopy ) : Resample::Resample( aCopy )
 }
 
 /** Full constructor.  Calculates the image resize factor.
-
-@param srcSampleRate source image ppi to be upsampled
-@param tgtSampleRate target image ppi of resulting upsample
-*/
+ *
+ * @param srcSampleRate source image ppi to be upsampled
+ * @param tgtSampleRate target image ppi of resulting upsample
+ */
 Upsample::Upsample( int srcSampleRate, int tgtSampleRate )
 {
   _srcSampleRate = srcSampleRate;
   _tgtSampleRate = tgtSampleRate;
 
   _resizeFactor = (float)_tgtSampleRate / (float)_srcSampleRate;
-
-  dirty = true;
 }
 
 
@@ -64,30 +62,29 @@ Upsample::Upsample( int srcSampleRate, int tgtSampleRate )
 // *********
 
 /** Wrapper for the OpenCV `resize` function.  Uses resize factor and
-interpolation method.
-
-@param srcImg to be resized by the amount of the `resizeFactor`
-
-@return target resized image
-*/
+ * interpolation method.
+ *
+ * @param srcImg to be resized by the amount of the `resizeFactor`
+ * @return target resized image
+ */
 cv::Mat Upsample::resize( cv::Mat srcImg )
 {
   cv::Mat resampledImg;
-  cv::resize( srcImg, resampledImg, cv::Size(0, 0),
+  cv::resize( srcImg, resampledImg, cv::Size(),
               _resizeFactor, _resizeFactor, _interpolationMethod );
   // resampledImg.release();  // Force test NFIR::Miscue
   return resampledImg;
 }
 
 
-/** Wrapper for the OpenCV `resize` function.  NOT TO BE CALLED; overridden to satisfy linker.
-
-@param srcImg to be resized by the amount of the __resizeFactor__
-@param filterMask that is multiplied with the freq domain image
-@param pads amount to crop the space domain image
-
-@return target resized image
-*/
+/** Wrapper for the OpenCV `resize` function.
+ *   NOT TO BE CALLED; overridden to satisfy linker.
+ * @param srcImg to be resized by the amount of the __resizeFactor__
+ * @param filterMask that is multiplied with the freq domain image
+ * @param pads amount to crop the space domain image
+ *
+ * @return target resized image
+ */
 cv::Mat Upsample::resize( cv::Mat srcImg, NFIR::FilterMask* filterMask, Padding& pads )
 {
   filterMask->~FilterMask();
@@ -111,9 +108,6 @@ Upsample Upsample::operator=( const Upsample& aCopy )
 
 
 /**
- * @brief Implements the recommended interpolation method if this config
- * param is not set by user.
- *
  * @param im interpolation method `bicubic` or `bilinear`
  *
  * @throw invalid interpolation method
@@ -139,7 +133,6 @@ void Upsample::set_interpolationMethod( const std::string im )
 }
 
 
-/** @brief This instance configuration for logging. */
 std::vector<std::string> Upsample::to_s(void) const
 {
   std::vector<std::string> v;

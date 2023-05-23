@@ -67,15 +67,31 @@ uint32_t *filteredImgPriorToDownsampleDimens;
  */
 cv::Mat filteredImgPriorToDownsample;
 
-
 /**
- * @brief Primary API to the resampler process that generates a new image
- * at the desired sample rate.
+ * @param srcImage IN pointer to source image
+ * @param tgtImage OUT pointer to generated, target image
+ * @param srcSampleRate value must reflect srUnits
+ * @param tgtSampleRate value must reflect srUnits
+ * @param srUnits sample rate [ inch | meter | other ]
+ * @param interpolationMethod [ bilinear | bicubic ]
+ * @param filterShape [ ideal | Gaussian ]
+ * @param imageWidth  IN -  width of source image,
+                      OUT - width of generated, target image
+ * @param imageHeight IN -  height of source image,
+ *                    OUT - height of generated, target image
+ * @param imgBufSize  IN -  length of the source image buffer
+ *                    OUT - length of the generated, target image buffer
+ * @param srcComp compression format of source image
+ * @param tgtComp compression format of target image
+ * @param log resample metadata for reporting to caller
+ *
+ * @throw NFIR::Miscue for invalid sample rate(s), interpolation method,
+ *              downsample filter shape, or cannot resize image
  */
 void
 resample( uint8_t *srcImage, uint8_t **tgtImage,
           int srcSampleRate, int tgtSampleRate, const std::string &srUnits,
-          std::string interpolationMethod, const std::string &filterShape,
+          const std::string &interpolationMethod, const std::string &filterShape,
           uint32_t *imageWidth, uint32_t *imageHeight,
           size_t *imgBufSize,
           const std::string &srcComp, const std::string &tgtComp,
@@ -135,7 +151,7 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
   /* Polymorphic, single instance either Upsample or Downsample */
   // Resample *resampler;
   /* Polymorphic, single instance Gaussian or Ideal */
-  FilterMask *currentFilter;
+  // FilterMask *currentFilter;
 
   cv::Mat paddedImg;
   Padding actualPadSize;
@@ -155,10 +171,17 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
     resample_metadata = resampler->to_s();
     for( auto s : resample_metadata ) { log.push_back(s); }
 
-    tgtImageMatrix = resampler->resize( srcImageMtx );
+    try {
+      tgtImageMatrix = resampler->resize( srcImageMtx );
+    }
+    catch( const cv::Exception& ex ) {
+      std::string err{"NFIR lib: Upsample failed resize(): "};
+      err.append( ex.what() );
+      throw NFIR::Miscue( err );
+    }
 
     if( tgtImageMatrix.empty() ) {
-      throw NFIR::Miscue( "NFIR lib: Upsample failed resize()" );
+      throw NFIR::Miscue( "NFIR lib: Upsample failed resized target == 0" );
     }
 
     // Save dims to OUT pointers
@@ -168,20 +191,32 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
     log.push_back( "UPSAMPLE target img matrix size: " + std::to_string(tgtImageMatrix.total()) );
 
     // Encode image to stream of bytes.
+    std::string ncSrcComp = srcComp;  // nc = non-const; for tolower() below
+    std::transform( ncSrcComp.begin(), ncSrcComp.end(),
+                    ncSrcComp.begin(), ::tolower );
     encComp.append( srcComp );
     cv::imencode( encComp, tgtImageMatrix, vecTgtImage );
     // Copy the vector to an array of bytes(uint8_t) for call to NFIMM.
 
-    log.push_back( "UPSAMPLE target img vector size: " + std::to_string(vecTgtImage.size()) );
-    tgtImageResampled = new uint8_t[vecTgtImage.size()];
-    for( size_t i=0; i<vecTgtImage.size(); i++ ) {
-      tgtImageResampled[i] = vecTgtImage.at(i);
-    }
+    log.push_back( "UPSAMPLE target img vector size: "
+                  + std::to_string(vecTgtImage.size()) );
+    log.push_back( "UPSAMPLE target img matrix size: "
+                  + std::to_string(tgtImageMatrix.total()) );
+    log.push_back( "UPSAMPLE target img WxH: "
+                  + std::to_string(tgtImageMatrix.cols) + "x"
+                  + std::to_string(tgtImageMatrix.rows) );
+    log.push_back( "UPSAMPLE target img num channels: "
+                  + std::to_string(tgtImageMatrix.channels()) );
+
+    // tgtImageResampled = new uint8_t[vecTgtImage.size()];
+    // for( size_t i=0; i<vecTgtImage.size(); i++ ) {
+    //   tgtImageResampled[i] = vecTgtImage.at(i);
+    // }
     // Update the function parameter for caller to use to write image.
     // Future work: NIST Fingerprint Image Metadata Modifier. In the event
     // that NFIMM is successfully called, this value is updated again.
-    *tgtImage = tgtImageResampled;
-    *imgBufSize = vecTgtImage.size();
+    // *tgtImage = tgtImageResampled;
+    // *imgBufSize = vecTgtImage.size();
 
     log.push_back( "UPSAMPLE target img num channels: "
                   + std::to_string(tgtImageMatrix.channels()) );
@@ -189,6 +224,63 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
     // Copy content of tgtImageMatrix to tgtImage
     // *tgtImage = new uint8_t[tgtImageMatrix.total()];
     // std::memcpy( *tgtImage, tgtImageMatrix.data, tgtImageMatrix.total() );
+
+
+
+    if( ncSrcComp == "png" || ncSrcComp == "bmp" )
+    // if( false )
+    {
+      // NFIMM (NIST Fingerprint Image Metadata Modifier library)
+      NFIMM::MetadataParameters mp( srcComp );  // tolower handled by NFIMM
+      // Initialize the NFIMM metadata params
+      mp.srcImg.resolution.horiz = srcSampleRate;
+      mp.srcImg.resolution.vert = srcSampleRate;
+      mp.set_srcImgSampleRateUnits( srUnits );
+      mp.destImg.resolution.horiz = tgtSampleRate;
+      mp.destImg.resolution.vert = tgtSampleRate;
+      mp.set_destImgSampleRateUnits( srUnits );
+      mp.destImg.textChunk = vecPngTextChunk;
+      // Finally, pick up the destination image size from the downsampled image
+      // that was encoded by Opencv::imencode(...) above.
+      mp.destImg.bufferSize = static_cast<uint32_t>(vecTgtImage.size());
+      mp.srcImg.buffer = NFIMM::NFIMM::readImageFileIntoBuffer( vecTgtImage );
+
+      try
+      {
+        NFIMM::NFIMM nfimm_mp( &mp );
+        nfimm_mp.modify();
+        // Push the NFIMM logging data to the NFIR log
+        log.push_back( mp.to_s() );
+        for( std::string s : mp.log ) { log.push_back( s ); }
+        mp.log.clear();
+      }
+      catch( const NFIMM::Miscue &err ) {
+        log.push_back( "NFIMM modify() failed, log prior to exception below:" );
+        log.push_back( mp.to_s() );
+        throw NFIR::Miscue( err.what() );
+      }
+
+      // copy the image buffer to be written to disk from NFIMM object
+      tgtImageResampled = new uint8_t[mp.destImg.bufferSize];
+      for( size_t i=0; i<mp.destImg.bufferSize; i++ ) {
+        tgtImageResampled[i] = mp.destImg.buffer[i];
+      }
+      *tgtImage = tgtImageResampled;
+      *imgBufSize = mp.destImg.bufferSize;
+      // copy is complete, so delete buffer in NFIMM object
+      delete [] mp.destImg.buffer;
+    }
+    else
+    {
+      // copy the image buffer to be written to disk from NFIMM object
+      tgtImageResampled = new uint8_t[vecTgtImage.size()];
+      for( size_t i=0; i<vecTgtImage.size(); i++ ) {
+        tgtImageResampled[i] = vecTgtImage.at(i);
+      }
+      // Update the function parameter for caller to use to write image.
+      *tgtImage = tgtImageResampled;
+      *imgBufSize = vecTgtImage.size();
+    }
 
     // Clean up
     delete resampler;
@@ -198,6 +290,7 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
   }
 
   // Not an UPSAMPLE, so start the DOWNSAMPLE process.
+  FilterMask *currentFilter;
   paddedImg = padImage( srcImageMtx, actualPadSize );
   log.push_back( actualPadSize.to_s() );
 
@@ -227,8 +320,10 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
     // Now that the padded, source image and current filter/mask are available,
     // ready to downsample.
     resample_metadata.clear();
+    log.push_back( ">> START DOWNSAMPLE (resampler) metadata:" );
     resample_metadata = resampler->to_s();
     for( auto s : resample_metadata ) { log.push_back(s); }
+    log.push_back( ">> END DOWNSAMPLE (resampler) metadata" );
 
     tgtImageMatrix = resampler->resize( paddedImg, currentFilter, actualPadSize );
     if( tgtImageMatrix.empty() ) {
@@ -237,7 +332,7 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
 
     NFIR::filteredImgPriorToDownsampleDimens = resampler->get_filteredImageDimens();
     NFIR::filteredImgPriorToDownsample = resampler->get_filteredImage();
-    log.push_back( "FILTERED target image PRIOR to DOWNSAMPLE - WxH: "
+    log.push_back( "LOW-PASS-FILTERED target image PRIOR to decimation - WxH: "
                   + std::to_string(NFIR::filteredImgPriorToDownsampleDimens[0]) + "x"
                   + std::to_string(NFIR::filteredImgPriorToDownsampleDimens[1]) );
 
@@ -245,7 +340,9 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
     *imageWidth = tgtImageMatrix.cols;
     *imageHeight = tgtImageMatrix.rows;
 
-    // Encode image to stream of bytes.
+    std::string ncSrcComp = srcComp;  // nc = non-const; for tolower() below
+    std::transform( ncSrcComp.begin(), ncSrcComp.end(),
+                    ncSrcComp.begin(), ::tolower );
     encComp.append( srcComp );
     cv::imencode( encComp, tgtImageMatrix, vecTgtImage );
 
@@ -259,16 +356,22 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
     log.push_back( "DOWNSAMPLE target img num channels: "
                   + std::to_string(tgtImageMatrix.channels()) );
 
-    // if( srcComp == "png" || srcComp == "bmp" )
-    if( false )
+    if( ncSrcComp == "png" || ncSrcComp == "bmp" )
+    // if( false )
     {
       // NFIMM (NIST Fingerprint Image Metadata Modifier library)
-      NFIMM::MetadataParameters mp( srcComp );
+      NFIMM::MetadataParameters mp( srcComp );  // tolower handled by NFIMM
       // Initialize the NFIMM metadata params
+      mp.srcImg.resolution.horiz = srcSampleRate;
+      mp.srcImg.resolution.vert = srcSampleRate;
+      mp.set_srcImgSampleRateUnits( srUnits );
       mp.destImg.resolution.horiz = tgtSampleRate;
       mp.destImg.resolution.vert = tgtSampleRate;
       mp.set_destImgSampleRateUnits( srUnits );
       mp.destImg.textChunk = vecPngTextChunk;
+      // Finally, pick up the destination image size from the downsampled image
+      // that was encoded by Opencv::imencode(...) above.
+      mp.destImg.bufferSize = static_cast<uint32_t>(vecTgtImage.size());
       mp.srcImg.buffer = NFIMM::NFIMM::readImageFileIntoBuffer( vecTgtImage );
 
       try
@@ -278,6 +381,7 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
         // Push the NFIMM logging data to the NFIR log
         log.push_back( mp.to_s() );
         for( std::string s : mp.log ) { log.push_back( s ); }
+        mp.log.clear();
       }
       catch( const NFIMM::Miscue &err ) {
         log.push_back( "NFIMM modify() failed, log prior to exception below:" );
@@ -285,15 +389,19 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
         throw NFIR::Miscue( err.what() );
       }
 
+      // copy the image buffer to be written to disk from NFIMM object
       tgtImageResampled = new uint8_t[mp.destImg.bufferSize];
       for( size_t i=0; i<mp.destImg.bufferSize; i++ ) {
         tgtImageResampled[i] = mp.destImg.buffer[i];
       }
       *tgtImage = tgtImageResampled;
       *imgBufSize = mp.destImg.bufferSize;
+      // copy is complete, so delete buffer in NFIMM object
+      delete [] mp.destImg.buffer;
     }
     else
     {
+      // copy the image buffer to be written to disk from NFIMM object
       tgtImageResampled = new uint8_t[vecTgtImage.size()];
       for( size_t i=0; i<vecTgtImage.size(); i++ ) {
         tgtImageResampled[i] = vecTgtImage.at(i);
@@ -331,9 +439,12 @@ printVersion()
   return s;
 }
 
-/**
- * @brief Additional API to get the filtered image prior to downsample.
- */
+std::string
+getVersion()
+{
+  return NFIR_VERSION;
+}
+
 void get_filteredImage( uint8_t** filteredImage,
                         const std::string &encodeCompression,
                         size_t   *imgBufSize,

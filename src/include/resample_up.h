@@ -34,9 +34,6 @@ namespace NFIR {
 /** @brief Support upsample process. */
 class Upsample : public Resample
 {
-private:
-  bool dirty;       // Keep track of the object state.
-
 public:
   // Default constructor.
   Upsample();
@@ -53,7 +50,13 @@ public:
 
   cv::Mat resize( cv::Mat ) override;
   cv::Mat resize( cv::Mat, NFIR::FilterMask*, Padding& ) override;
+  /** @brief This instance configuration for logging. */
   std::vector<std::string> to_s(void) const override;
+
+  /**
+   * @brief Implements the recommended interpolation method if this config
+   * param is not set by user.
+   */
   void set_interpolationMethod( const std::string ) override;
 
   // Implement a clone operator.

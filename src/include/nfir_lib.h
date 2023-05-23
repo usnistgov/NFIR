@@ -42,6 +42,11 @@ namespace NFIR {
 std::string
 printVersion(void);
 
+/**
+ * @return version of NFIR only
+ */
+std::string
+getVersion(void);
 
 /**
  * @brief Primary API to the resampler process that generates a new image
@@ -72,33 +77,13 @@ printVersion(void);
  * update the log if conversion was performed.  In the event that this function
  * returns unsuccesfully and without throwing exception, check the number of
  * channels and pixel bit-depth of the source image.
- *
- * @param srcImage IN pointer to source image
- * @param tgtImage OUT pointer to generated, target image
- * @param srcSampleRate value must reflect srUnits
- * @param tgtSampleRate value must reflect srUnits
- * @param srUnits sample rate [ inch | meter | other ]
- * @param interpolationMethod [ bilinear | bicubic (the default) ]
- * @param filterShape [ ideal | Gaussian (the default) ]
- * @param imageWidth  IN -  width of source image,
-                      OUT - width of generated, target image
- * @param imageHeight IN -  height of source image,
- *                    OUT - height of generated, target image
- * @param imgBufSize  IN -  length of the source image buffer
- *                    OUT - length of the generated, target image buffer
- * @param srcComp compression format of source image
- * @param tgtComp compression format of target image
- * @param log resample metadata for reporting to caller
- *
- * @throw NFIR::Miscue for invalid sample rate(s), interpolation method,
- *              downsample filter shape, or cannot resize image
  */
 void
-resample( uint8_t* srcImage, uint8_t** tgtImage,
-               int srcSampleRate, int tgtSampleRate, const std::string &,
-               std::string interpolationMethod, const std::string &,
-               uint32_t *imageWidth, uint32_t *imageHeight,
-               size_t *imgBufSize,
+resample( uint8_t *, uint8_t **,
+               int, int, const std::string &,
+               const std::string &, const std::string &,
+               uint32_t *, uint32_t *,
+               size_t *,
                const std::string &, const std::string &,
                std::vector<std::string> &,
                std::vector<std::string> & );

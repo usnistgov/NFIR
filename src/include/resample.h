@@ -97,9 +97,11 @@ protected:
   /**
    * @brief This image has been filtered but not yet downsampled.
    * 
-   * Its dimensions are width and height of the zero-padded image.  This image
-   * is made available to the using software as proof that the lowpass filter
-   * has removed all image frequency components above the desired sample rate.
+   * Its dimensions are width and height of the zero-padded image after crop
+   * of the padding.
+   * This image is made available to the using software as proof that the
+   * lowpass filter has removed all image frequency components above the
+   * desired sample rate
    * See screen-shots of SIVV 1D power spectrum in README.
    */
   cv::Mat _filteredImagePriorToDownsample;

@@ -76,7 +76,7 @@ public:
   virtual ~FilterMask() {}
 
   // Override in derived class.
-  /** @brief ideal or Gaussian */
+  /** @brief Ideal or Gaussian */
   virtual FilterShape get_filterShape(void) const;
   virtual void build( cv::Size );
 
