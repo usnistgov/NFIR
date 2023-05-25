@@ -43,12 +43,8 @@ static void validateUserSpecifiedSampleRates( int, int );
 
 namespace NFIR {
 
-/**
- * @brief W x H of filteredImgPriorToDownsample.
- * 
- */
+/** @brief W x H of filteredImgPriorToDownsample */
 uint32_t *filteredImgPriorToDownsampleDimens;
-
 
 /**
  * @brief Filtered source-image prior to downsample by *resize factor*.
@@ -475,7 +471,7 @@ void get_filteredImage( uint8_t** filteredImage,
 
 /**
  * @brief Decode the OpenCV enum.
- * 
+ *
  * A Mapping of Type to Numbers in OpenCV:\n
  *        C1  C2  C3  C4\n
  * CV_8U   0   8  16  24\n
@@ -522,7 +518,7 @@ std::string getImageDepthStr( const int depth )
 
 /**
  * @brief Utilize the OpenCV optimal padding function.
- * 
+ *
  * If either (or both) of the optimal rows or columns are odd, one row or column
  * is added to the padding. This must be done to ensure that the ideal filter/mask
  * rightmost column and bottommost row contain all zeros.

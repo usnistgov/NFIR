@@ -29,7 +29,7 @@ identified are necessarily the best available for the purpose.
 
 namespace NFIR {
 
-// Initialization function that resets all values.
+/** Set source and target rates to 500PPI, mask radius factor to 1.0. */
 void FilterMask::Init()
 {
   _srcSampleRate = 500;
@@ -37,7 +37,9 @@ void FilterMask::Init()
   _maskRadiusFactor = 1.0;
 }
 
-// Copy function to make clones of an object.
+/**
+ * @param aCopy copy from this instance
+ */
 void FilterMask::Copy( const FilterMask& aCopy )
 {
   // Init();
@@ -47,20 +49,18 @@ void FilterMask::Copy( const FilterMask& aCopy )
   _maskRadiusFactor = aCopy._maskRadiusFactor;
 }
 
-// Default constructor.
 FilterMask::FilterMask()
 {
   Init();
 }
-// Copy constructor.
+
+/** @param aCopy the instance to copy from */
 FilterMask::FilterMask( const FilterMask& aCopy )
 {
   Copy( aCopy );
 }
 
 /**
- * @brief Base class constructor.  Calculates the filter/mask radius factor.
- *
  * @param srcSampleRate source image ppi to be resampled
  * @param tgtSampleRate target image ppi of resulting image
  */
@@ -73,27 +73,31 @@ FilterMask::FilterMask( int srcSampleRate, int tgtSampleRate )
 }
 
 
-// Methods are declared virtual and MUST be overridden in derived class.
+/** Methods are declared virtual and MUST be overridden in derived class.
+ *
+ * @return the filter shape
+ */
 FilterMask::FilterShape FilterMask::get_filterShape(void) const
 {
   FilterMask::FilterShape fs{};
   return fs;
 }
 
+/** Overridden by base class
+ * @param cv::Size of the mask
+ */
 void FilterMask::build( cv::Size ) { }
 
+/** @return value to configure the mask size */
 double FilterMask::get_maskRadiusFactor(void) const
 {
   return _maskRadiusFactor;
 }
 
+/** @return this instance mask that applies the filter */
 cv::Mat FilterMask::get_theFilterMask(void) const
 {
   return _theFilterMask;
 }
-
-// *********
-// Always create a virtual destructor- implemented in header file: virtual ~FilterMask() {}.
-// *********
 
 }   // End namespace

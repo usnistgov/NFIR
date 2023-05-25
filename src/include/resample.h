@@ -40,8 +40,7 @@ identified are necessarily the best available for the purpose.
 // Type alias.
 typedef int InterpolationMethod;
 
-/**
- * @brief Applied to source image prior to DFT.
+/** @brief Applied to source image prior to DFT
  * 
  * Top and left sides are always zero.
  */
@@ -51,9 +50,7 @@ struct Padding {
   int left;
   int right;
 
-  /**
-   * @brief Reset all four sides to zero, especially right and bottom.
-   * 
+  /** @brief Reset all four sides to zero, especially right and bottom
    */
   void reset(void)
   {
@@ -63,7 +60,7 @@ struct Padding {
     right = 0;
   }
 
-  /**
+  /** @brief Image padding for current downsample process
    * @return std::string for entry into metadata
    */
   std::string to_s(void)
@@ -82,7 +79,7 @@ struct Padding {
 namespace NFIR {
 
 /**
- * @brief Base class that is used via polymorphism to support resampling.
+ * @brief Base class that is used via polymorphism to support resampling
  *
  * Is never directly instantiated.
  */
@@ -91,71 +88,86 @@ class Resample
 private:
 
 protected:
-  /** Resample configuration message for logging */
+  /** @brief Resample configuration message for logging */
   std::string _configRecap;
 
   /**
    * @brief This image has been filtered but not yet downsampled.
-   * 
+   *
    * Its dimensions are width and height of the zero-padded image after crop
    * of the padding.
    * This image is made available to the using software as proof that the
    * lowpass filter has removed all image frequency components above the
-   * desired sample rate
+   * desired sample rate.
    * See screen-shots of SIVV 1D power spectrum in README.
    */
   cv::Mat _filteredImagePriorToDownsample;
   uint32_t *_filteredImageDimens;
 
+  /** @brief Bicubic or bilinear used to resize source image to target image */
   InterpolationMethod _interpolationMethod;
+  /** @brief Calculated, is used to resize source image to target image */
   double _resizeFactor;
+  /** @brief User must specify source image resolution in pixels per inch */
   int _srcSampleRate;
+  /** @brief User must specify target image resolution in pixels per inch */
   int _tgtSampleRate;
 
-  // Initialization function that resets all values.
+  /** @brief Initialization function that resets all values */
   void Init();
 
-  // Copy function to make clones of an object.
+  /** @brief Copy function to make clones of an object */
   void Copy( const Resample& );
 
 public:
-  // Default constructor.
+  /** @brief Default constructor never used */
   Resample();
 
-  // Copy constructor.
+  /** @brief Copy constructor */
   Resample( const Resample& );
 
-  // Full constructor with all accessible members defined.
+  /** @brief Full constructor with all accessible members defined */
   Resample( int, int );
 
-  // Virtual destructor
+  /** @brief Virtual destructor */
   virtual ~Resample() {}
 
 
   // Overrides in derived class.
-  virtual cv::Mat resize( cv::Mat );   // Upsample
-  virtual cv::Mat resize( cv::Mat, NFIR::FilterMask*, Padding& );  // Downsample
+  /** @brief Resize an upsampled image */
+  virtual cv::Mat resize( cv::Mat );
+  /** @brief Resize a downsampled image */
+  virtual cv::Mat resize( cv::Mat, NFIR::FilterMask*, Padding& );
+  /** @brief Resample runtime log */
   virtual std::vector<std::string> to_s(void) const;
 
   // Declare set methods.
+  /** @brief Set upsample interpolation */
   virtual void set_interpolationMethod( const std::string );
+  /** @brief Set downsample interpolation and low-pass filter shape/type */
   virtual void set_interpolationMethodAndFilterShape( const std::string,
                                                       const std::string );
+  /** @brief Source image sample-rate/resolution as specified by user */
   void set_srcSampleRate( const int& );
+  /** @brief Target image sample-rate/resolution as specified by user */
   void set_tgtSampleRate( const int& );
 
 
   // Data get functions cannot modify the object, all declared as const.
+  /** @brief Getter method */
   InterpolationMethod get_interpolationMethod(void) const;
+  /** @brief Getter method */
   double get_resizeFactor(void) const;
+  /** @brief Getter method */
   int get_srcSampleRate(void) const;
+  /** @brief Getter method */
   int get_tgtSampleRate(void) const;
 
   // Implement a clone operator.
-  Resample Clone(void);
+  // Resample Clone(void);
 
   // Implement an assigment operator.
-  Resample operator=( const Resample& );
+  // Resample operator=( const Resample& );
 
 };
 

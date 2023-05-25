@@ -101,7 +101,6 @@ resample( uint8_t *, uint8_t **,
  * @param imageWidth OUT pixels
  * @param imageHeight OUT pixels
  */
-
 void
 get_filteredImage( uint8_t** tgtImage,
                         const std::string &encodeCompression,

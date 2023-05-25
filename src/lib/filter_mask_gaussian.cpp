@@ -45,9 +45,8 @@ Gaussian::Gaussian( const Gaussian& aCopy ) : FilterMask::FilterMask( aCopy )
 }
 
 /**
- * @brief Full constructor calculates the filter/mask radius factor.
- * 
- *  Sets the filter/mask shape to `Gaussian`.
+ * Calculates the filter/mask radius factor and sets the filter/mask shape
+ * to `Gaussian`.
  *
  * @param srcSampleRate source image ppi to be downsampled
  * @param tgtSampleRate target image ppi of resulting image
@@ -61,7 +60,7 @@ Gaussian::Gaussian( int srcSampleRate, int tgtSampleRate )
   _filterShape = FilterShape::Gaussian;
 }
 
-
+/** @return instance shape is Gaussian */
 FilterMask::FilterShape Gaussian::get_filterShape(void) const
 {
   return _filterShape;
@@ -69,8 +68,6 @@ FilterMask::FilterShape Gaussian::get_filterShape(void) const
 
 
 /**
- * @brief Uses OpenCV Gaussian kernel generator.
- * 
  * Gaussian "curve" is based on size of source image in both x- and y- directions.
  * Normalize and shift (ie, quadrant swap) the mask.
  *

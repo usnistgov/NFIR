@@ -43,8 +43,6 @@ Ideal::Ideal( const Ideal& aCopy ) : FilterMask::FilterMask( aCopy )
 }
 
 /**
- * @brief Full constructor calculates the filter/mask radius factor.
- *
  * Sets the filter/mask shape to `ideal`.
  *
  * @param srcSampleRate source image ppi to be downsampled
@@ -67,7 +65,7 @@ FilterMask::FilterShape Ideal::get_filterShape(void) const
 }
 
 /**
- * @brief Use Meshgrid for mask shape using the ellipse.
+ * Use Meshgrid for mask shape using the ellipse.
  *
  * Per "classical" ellipse theory, the major-axis is the longer of the two.
  * For example, for an image/mask that is wider than higher, the x-axis is

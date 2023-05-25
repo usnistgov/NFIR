@@ -35,30 +35,32 @@ namespace NFIR {
 class Gaussian : public FilterMask
 {
 private:
+  /** @brief Current instance */
   FilterShape _filterShape;
 
 public:
-  // Default constructor.
+  /** @brief Default constructor never used */
   Gaussian();
 
-  // Copy constructor.
+  /** @brief Copy constructor */
   Gaussian( const Gaussian& );
 
-  // Full constructor with all accessible members defined.
+  /** @brief Full constructor with all accessible members defined */
   Gaussian( int , int );
 
-  // Virtual destructor
+  /** @brief Virtual destructor */
   virtual ~Gaussian() {}
 
-
+  /** @brief Getter method */
   FilterShape get_filterShape(void) const override;
+
+  /** @brief Build the Gaussian filter upenCV Gaussian kernel generator */
   void build( cv::Size ) override;
 
-
-  // Implement a clone operator.
+  /** @brief Implement a clone operator */
   Gaussian Clone(void);
 
-  // Implement an assigment operator.
+  /** @brief Implement an assigment operator */
   Gaussian operator=( const Gaussian& );
 };
 

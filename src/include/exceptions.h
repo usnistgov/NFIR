@@ -41,14 +41,11 @@ namespace NFIR {
 */
 class Miscue: public std::exception {
 
-  /**
-   * @brief Custom error message.
-   * 
-   */
+  /** @brief Custom error message */
   std::string _msg{""};
 
 public:
-  /**
+  /** @brief Constructor
    * @param msg custom error message
    */
   Miscue( const std::string &msg ) : _msg{"NFIR Exception: " + msg} {}
@@ -63,7 +60,7 @@ public:
     return "NFRL Exception: " + _msg;
   }
 
-  /**
+  /** @brief Override the std::exception method
    * @return text of the error message
    */
   const char* what() const noexcept override

@@ -35,16 +35,17 @@ namespace NFIR {
 class Downsample : public Resample
 {
 private:
+  /** @brief low pass filter ideal or Gaussian */
   std::string _filterShape;
 
 public:
-  // Default constructor.
+  /** @brief Default constructor. Never used */
   Downsample();
 
-  // Copy constructor.
+  /** @brief Copy constructor */
   Downsample( const Downsample& );
 
-  /** @brief Full constructor.
+  /** @brief Full constructor
    *
    * Calculates the image resize factor.
    *
@@ -53,11 +54,11 @@ public:
    */
   Downsample( int, int );
 
-  // Virtual destructor
+  /** @brief Virtual destructor cleans-up */
   virtual ~Downsample() { delete [] _filteredImageDimens; }
 
 
-  /** @brief Used to upsample. */
+  /** @brief Used for upsample only; exists to satisfy linker; NOT TO BE CALLED */
   cv::Mat resize( cv::Mat ) override;
 
   /**
@@ -77,17 +78,10 @@ public:
    * 5. Extract image that is (polar) magnitude of inverse DFT
    * 6. Crop space domain image
    * 7. Call the OpenCV `resize` function.
-   *
-   * The OpenCV resize() function uses the __resize factor__
-   *  and interpolation method.
-   *
-   * @param srcImg to be downsampled
-   * @param filterMask that is multiplied with the freq domain image
-   * @param pads amount to crop the space domain image
-   *
-   * @return final downsampled, resized image
    */
   cv::Mat resize( cv::Mat, NFIR::FilterMask*, Padding& ) override;
+
+  /** @brief This instance configuration for logging. */
   std::vector<std::string> to_s(void) const override;
 
   /**
@@ -107,16 +101,11 @@ public:
    *      600 to 500ppi - BICUBIC     <=== MANUAL
    *     1000 to 500ppi - BICUBIC     <=== MANUAL
    *     1200 to 500ppi - BILINEAR    <=== BEST
-   *
-   * @param im interpolation method `bicubic` or `bilinear`
-   * @param fs filter shape `Gaussian` or `Ideal`
-   *
-   * @throw NFIR::Miscue invalid interpolation method or filter shape
    */
   void set_interpolationMethodAndFilterShape( const std::string,
                                               const std::string ) override;
 
-  /** @return "Gaussian" or "ideal" */
+  /** @brief Get current instance filter shape */
   std::string get_filterShape(void) const;
 
   /** @brief This image is made available as 'optional'.
@@ -125,18 +114,16 @@ public:
    * process.  The spectral power of this image is "cut off" at the target
    * sample rate and is made obvious by SIVV's Log Power Spectrum graph.
    * See https://doi.org/10.6028/NIST.IR.7968.
-   *
-   * @return target image that is filtered but not yet resampled
    */
   cv::Mat get_filteredImage(void) const;
 
-  /** @return WxH */
+  /** @brief Width x height of image before decimation */
   uint32_t *get_filteredImageDimens(void) const;
 
-  // Implement a clone operator.
+  /** @brief Implement a clone operation */
   Downsample Clone(void);
 
-  // Implement an assigment operator.
+  /** @brief Implement an assigment operator */
   Downsample operator=( const Downsample& );
 };
 

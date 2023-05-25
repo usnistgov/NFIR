@@ -38,26 +38,28 @@ private:
   FilterShape _filterShape;
 
 public:
-  // Default constructor.
+  /** @brief Default constructor never used */
   Ideal();
 
-  // Copy constructor.
+  /** @brief Copy constructor */
   Ideal( const Ideal& );
 
-  // Full constructor.
+  /** @brief Full constructor calculates the filter/mask radius factor */
   Ideal( int , int );
 
-  // Virtual destructor
+  /** @brief Virtual destructor */
   virtual ~Ideal() {}
 
+  /** @brief Getter method */
   FilterShape get_filterShape(void) const override;
 
   /**
-  Build the ideal filter that is same size as the padded source image.
-  Since this is a low-pass filter, all values within the ellipse are set
-  to **1.0**, all those outside set to **0.0**.  This filter is multiplied
-  with the source image in the frequency domain.
-  */
+   * @brief Build the ideal filter that is same size as the padded source image
+   *
+   * Since this is a low-pass filter, all values within the ellipse are set
+   * to **1.0**, all those outside set to **0.0**.  This filter is multiplied
+   * with the source image in the frequency domain.
+   */
   void build( cv::Size ) override;
 
 

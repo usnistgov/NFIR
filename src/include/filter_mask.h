@@ -39,7 +39,8 @@ class FilterMask
 {
 public:
   /**
-   * @brief Filter shapes used for downsample (only).
+   * @brief Filter shapes used for downsample (only)
+   *
    * Ideal and Gaussian (no Butterworth).
    */
   enum class FilterShape : unsigned
@@ -50,52 +51,60 @@ public:
 
 
 protected:
+  /** @brief (float)_tgtSampleRate / (float)_srcSampleRate */
   double _maskRadiusFactor;
+  /** @brief The low pass filter */
   cv::Mat _theFilterMask;
 
+  /** @brief source image resolution */
   int _srcSampleRate;
+  /** @brief target image resolution */
   int _tgtSampleRate;
 
-  // Initialization function that resets all values.
+  /** @brief Initialization function that resets all values */
   void Init();
 
-  // Copy function to make clones of an object.
+  /** @brief Copy function to make clones of an object */
   void Copy( const FilterMask& );
 
 public:
-  // Default constructor.
+  /** @brief Default constructor never used */
   FilterMask();
 
-  // Copy constructor.
+  /** @brief Copy constructor */
   FilterMask( const FilterMask& );
 
-  // Full constructor with all accessible members defined.
+  /** @brief Base class constructor calculates the filter/mask radius factor */
   FilterMask( int, int );
 
-  // Virtual destructor
+  /** @brief Virtual destructor */
   virtual ~FilterMask() {}
 
   // Override in derived class.
   /** @brief Ideal or Gaussian */
   virtual FilterShape get_filterShape(void) const;
+  /** @brief Build the filter/mask; implemented in subclass */
   virtual void build( cv::Size );
 
+  /** @brief Setter method */
   void set_srcSampleRate( const int& );
+  /** @brief Setter method */
   void set_tgtSampleRate( const int& );
 
 
-  // Now the data get functions. They cannot modify
-  // the object, they are all marked as const.
+  /** @brief Getter method */
   int get_srcSampleRate(void) const;
+  /** @brief Getter method */
   int get_tgtSampleRate(void) const;
   /** @brief tgtSampleRate / srcSampleRate */
   double get_maskRadiusFactor(void) const;
+  /** @brief Getter method */
   cv::Mat get_theFilterMask(void) const;
 
-  // Implement a clone operator.
+  /** @brief Implement a clone operator */
   FilterMask Clone(void);
 
-  // Implement an assigment operator.
+  /** @brief Implement an assigment operator */
   FilterMask operator=( const FilterMask& );
 };
 

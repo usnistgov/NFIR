@@ -43,7 +43,12 @@ Downsample::Downsample( const Downsample& aCopy ) : Resample::Resample( aCopy )
   Copy( aCopy );
 }
 
-// Full constructor used by client.
+/** Full constructor used by client.
+ * Calculate the resize factor to set the size of the target image.
+ *
+ * @param srcSampleRate pixels per inch
+ * @param tgtSampleRate pixels per inch
+ */
 Downsample::Downsample( int srcSampleRate, int tgtSampleRate )
 {
   _srcSampleRate = srcSampleRate;
@@ -53,7 +58,16 @@ Downsample::Downsample( int srcSampleRate, int tgtSampleRate )
   _filteredImageDimens = new uint32_t[2];
 }
 
-
+/**
+ * The OpenCV resize() function uses the __resize factor__
+ *  and interpolation method.
+ *
+ * @param srcImg to be downsampled
+ * @param filterMask that is multiplied with the freq domain image
+ * @param pads amount to crop the space domain image
+ * @return final downsampled, resized image
+ * @throw cv::Exception on any/all possible OpenCV exceptions
+ */
 cv::Mat Downsample::resize( cv::Mat srcImg,
                             NFIR::FilterMask* filterMask,
                             Padding& pads )
@@ -113,30 +127,29 @@ cv::Mat Downsample::resize( cv::Mat srcImg,
 
 
 /**
- * @brief Wrapper for the OpenCV `resize` function.
- *
- * Uses resize factor and interpolation method.  NOT TO BE CALLED;
- * overridden to satisfy linker.
- *
- * @param srcImg to be resized by the amount of the `resizeFactor`
- *
- * @return target resized image
+ * @param srcImg "place-holder"
+ * @return source image passed-in
  */
 cv::Mat Downsample::resize( cv::Mat srcImg )
 {
   return srcImg;
 }
 
-
+/** @return WxH */
 uint32_t *Downsample::get_filteredImageDimens() const
 {
   return _filteredImageDimens;
 }
+
+/** @return image buffer before decimation and after filter */
 cv::Mat Downsample::get_filteredImage() const
 {
   return _filteredImagePriorToDownsample;
 }
 
+/**
+ *  @return Downsample copy of this downsample object
+ */
 Downsample Downsample::Clone(void)
 {
   Downsample c;
@@ -144,6 +157,10 @@ Downsample Downsample::Clone(void)
   return c;
 }
 
+/**
+ * @param aCopy object to be copied
+ *  @return Downsample copy of passed object
+ */
 Downsample Downsample::operator=( const Downsample& aCopy )
 {
   Copy( aCopy );
@@ -151,7 +168,6 @@ Downsample Downsample::operator=( const Downsample& aCopy )
 }
 
 
-/** @brief This instance configuration for logging. */
 std::vector<std::string> Downsample::to_s(void) const
 {
   std::vector<std::string> v;
@@ -166,7 +182,12 @@ std::vector<std::string> Downsample::to_s(void) const
   return v;
 }
 
-
+/**
+ * @param im interpolation method `bicubic` or `bilinear`
+ * @param fs filter shape `Gaussian` or `Ideal`
+ *
+ * @throw NFIR::Miscue invalid interpolation method or filter shape
+ */
 void Downsample::set_interpolationMethodAndFilterShape( const std::string im, const std::string fs )
 {
   // Interpolation mask and filter shape BOTH specified by config.
@@ -218,6 +239,7 @@ void Downsample::set_interpolationMethodAndFilterShape( const std::string im, co
   }
 }
 
+/** @return "Gaussian" or "ideal" */
 std::string Downsample::get_filterShape(void) const
 {
   return _filterShape;
