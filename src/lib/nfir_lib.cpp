@@ -160,7 +160,8 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
   // Based on UP or DOWN sample, instantiate the proper object.
   if( tgtSampleRate > srcSampleRate )   // Upsample
   {
-    auto resampler = new Upsample( srcSampleRate, tgtSampleRate );
+    // auto resampler = new Upsample( srcSampleRate, tgtSampleRate );
+    std::unique_ptr<Upsample> resampler(new Upsample( srcSampleRate, tgtSampleRate ));
     resampler->set_interpolationMethod( interpolationMethod );
 
     resample_metadata.clear();
@@ -279,14 +280,15 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
     }
 
     // Clean up
-    delete resampler;
-    resampler = nullptr;
+    // delete resampler;
+    // resampler = nullptr;
 
     return;
   }
 
   // Not an UPSAMPLE, so start the DOWNSAMPLE process.
   FilterMask *currentFilter;
+  // std::unique_ptr<FilterMask> currentFilter; 
   paddedImg = padImage( srcImageMtx, actualPadSize );
   log.push_back( actualPadSize.to_s() );
 
@@ -294,17 +296,20 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
   // The filter/mask is same dimension (WxH) as the padded, source image.
   try
   {
-    auto resampler = new Downsample( srcSampleRate, tgtSampleRate );
+    // auto resampler = new Downsample( srcSampleRate, tgtSampleRate );
+    std::unique_ptr<Downsample> resampler( new Downsample( srcSampleRate, tgtSampleRate ) );
     resampler->set_interpolationMethodAndFilterShape( interpolationMethod,
                                                       filterShape );
     if( resampler->get_filterShape() == "Gaussian" )
     {
       currentFilter = new Gaussian( srcSampleRate, tgtSampleRate );
+      // currentFilter.reset( new Gaussian( srcSampleRate, tgtSampleRate ));
       currentFilter->build( paddedImg.size() );
     }
     else if( resampler->get_filterShape() == "ideal" )
     {
       currentFilter = new Ideal( srcSampleRate, tgtSampleRate );
+      // currentFilter.reset( new Ideal( srcSampleRate, tgtSampleRate ));
       currentFilter->build( paddedImg.size() );
     }
     else
@@ -408,18 +413,16 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
     }
 
     // Clean up
-    delete resampler;
-    resampler = nullptr;
+    // delete resampler;
+    // resampler = nullptr;
     delete currentFilter;
     currentFilter = nullptr;
-
   }
   catch( const cv::Exception& ex ) {
     std::string err{"NFIR lib: Downsample failed resize(): "};
     err.append( ex.what() );
     throw NFIR::Miscue( err );
   }
-
   return;
 }
 
@@ -429,9 +432,10 @@ printVersion()
 {
   std::string s{ "NFIR (NIST Fingerprint Image Resampler) version: " };
   s.append( NFIR_VERSION );
+  s.append( "\nNIST Fingerprint Image Metadata Modifier version: "
+            + NFIMM::printVersion() );
   s.append( "\nOpenCV version: ");
   s.append(CV_VERSION);
-  s.append( "\n" + NFIMM::printVersion() );
   return s;
 }
 
