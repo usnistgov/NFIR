@@ -4,11 +4,10 @@ Build output may be redirected to any convenient dir by utilizing the '-B' switc
 For the Windows examples below, build output is redirected to RAMDRIVE (R:\).  A nice tool to create RAMDRIVE for
 Windows is OFSMount (osforensics.com).
 
-From this 'build' subdir, open PowerShell terminal:
+Open a PowerShell terminal, create and change-to the 'build' subdir, and run:
 
-NFIR lib and bin:
-cmake -S .. -B R:\NFIR -DCMAKE_CONFIGURATION_TYPES="Release" -D_WIN32_64=1
-MSBuild R:\NFIR\NFIR_ITL.sln
+.\NFIR\build> cmake -S .. -B R:\NFIR -DCMAKE_CONFIGURATION_TYPES="Release" -D_WIN32_64=1
+.\NFIR\build> MSBuild R:\NFIR\NFIR_ITL.sln
 
 Library files are located here on successful build:
 R:\NFIR\src\lib\Release\NFIR_ITL.lib
@@ -16,11 +15,10 @@ R:\NFIR\src\bin\Release\NFIR_bin.exe
 
 
 ## Linux
-In a terminal, navigate to the 'build' subdir:
+In a terminal, create and change-to the 'build' subdir, and run:
 
-NFIR lib and bin:
-cmake ..
-make
+./NFIR/build$ cmake ..
+./NFIR/build$ make
 
 Library files are located here on successful build:
 ./src/bin/NFIR_bin

@@ -22,7 +22,7 @@ project(NFIR_ITL)
 #   project(NFIR_ITL VERSION 0.2.1)
 # endif()
 
-message(STATUS "ROOT PROJECT_NAME: ${PROJECT_NAME}")
+message(STATUS "PROJECT_NAME: ${PROJECT_NAME}")
 
 # Pick up the library and binary
 add_subdirectory(src/lib)

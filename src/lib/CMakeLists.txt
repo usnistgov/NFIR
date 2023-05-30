@@ -1,5 +1,5 @@
 
-project(NFIR_ITL)
+project(${PROJECT_NAME})
 
 FILE(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 add_library( ${PROJECT_NAME} ${sources} )
@@ -34,7 +34,7 @@ if(_WIN32_64)
   # NFIMM
   target_include_directories(${PROJECT_NAME} PRIVATE
   D:/SourceCode/GitLab/ProjectSoftware/NFIMM_NIST/TheLibrary/NFIMM/src/include  )
-  target_link_libraries(${PROJECT_NAME} R:/NFIMM/src/lib/Release/nfimm.lib )
+  target_link_libraries(${PROJECT_NAME} R:/NFIMM/src/lib/Release/NFIMM_ITL.lib )
 
 else()
   message(STATUS "LIB: CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
