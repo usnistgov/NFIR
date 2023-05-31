@@ -15,7 +15,10 @@ R:\NFIR\src\bin\Release\NFIR_bin.exe
 
 
 ## Linux
-In a terminal, create and change-to the 'build' subdir, and run:
+First, in file ./src/lib/CMakeLists.txt, replace the text 'YOUR-DIR-HERE' with
+the directory-path to NFIMM target-include and target-link parameters.
+
+Then, in a terminal, create and change-to the 'build' subdir, and run:
 
 ./NFIR/build$ cmake ..
 ./NFIR/build$ make

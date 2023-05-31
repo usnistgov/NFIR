@@ -44,11 +44,16 @@ else()
 	target_include_directories(${PROJECT_NAME} PUBLIC ${OPENCV_INCLUDE_DIRS})
 	target_compile_options(${PROJECT_NAME} PUBLIC ${OPENCV_CFLAGS_OTHER})
 
+  target_include_directories(${PROJECT_NAME} PRIVATE
+  /YOUR-DIR-HERE/nfimm/src/include)
+  target_link_libraries(${PROJECT_NAME} PRIVATE
+  /YOUR-DIR-HERE/nfimm/build/src/lib//libNFIMM_ITL.a)
+
   message(STATUS "OPENCV_INCLUDE_DIRS found as: '${OPENCV_INCLUDE_DIRS}'")
 	message(STATUS "OPENCV_LIBRARIES found as: '${OPENCV_LINK_LIBRARIES}'")
 endif()
 
-message(STATUS "CMAKE_CURRENT_SOURCE_DIR: '${CMAKE_CURRENT_SOURCE_DIR}'")
+message(STATUS "LIB: CMAKE_CURRENT_SOURCE_DIR: '${CMAKE_CURRENT_SOURCE_DIR}'")
 target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/../include)
 get_property(inc_dirs TARGET ${PROJECT_NAME} PROPERTY INCLUDE_DIRECTORIES)
 message(STATUS "${PROJECT_NAME} include dirs =>> ${inc_dirs}")
