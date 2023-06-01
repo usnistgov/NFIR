@@ -30,17 +30,6 @@ For windows, it is not necessary to build the development and runtime libraries.
 
 ```
 user@server:~/./NFIR/build$ cmake ..
--- ROOT PROJECT_NAME: NFIR_ITL
--- CMAKE_CXX_FLAGS:
--- OPENCV_INCLUDE_DIRS found as: '/home/user/libs/opencv-4.5.0/include/opencv4'
--- OPENCV_LIBRARIES found as: '/home/user/libs/opencv-4.5.0/lib/libopencv_dnn.so;/home/user/libs/opencv-4.5.0/lib/libopencv_gapi.so;/home/user/libs/opencv-4.5.0/lib/libopencv_highgui.so;/home/user/libs/opencv-4.5.0/lib/libopencv_ml.so;/home/user/libs/opencv-4.5.0/lib/libopencv_objdetect.so;/home/user/libs/opencv-4.5.0/lib/libopencv_photo.so;/home/user/libs/opencv-4.5.0/lib/libopencv_stitching.so;/home/user/libs/opencv-4.5.0/lib/libopencv_video.so;/home/user/libs/opencv-4.5.0/lib/libopencv_calib3d.so;/home/user/libs/opencv-4.5.0/lib/libopencv_features2d.so;/home/user/libs/opencv-4.5.0/lib/libopencv_flann.so;/home/user/libs/opencv-4.5.0/lib/libopencv_videoio.so;/home/user/libs/opencv-4.5.0/lib/libopencv_imgcodecs.so;/home/user/libs/opencv-4.5.0/lib/libopencv_imgproc.so;/home/user/libs/opencv-4.5.0/lib/libopencv_core.so'
--- CMAKE_CURRENT_SOURCE_DIR: '/home/user/./NFIR/src/lib'
--- INCLUDE_DIRECTORIES: ''
--- CMAKE_CXX_FLAGS:
--- CMAKE_CURRENT_SOURCE_DIR: /home/user/./NFIR/src/bin
--- Configuring done
--- Generating done
--- Build files have been written to: /home/user/./NFIR/build
 
 sovia@server:~/./NFIR/build$ make
 Scanning dependencies of target NFIR

@@ -104,7 +104,7 @@ int main(int argc, char** argv)
   app.add_option( "-d, --tgt-file", tgtFile, "Target imagery file (absolute or relative)" )
     ->needs(sf_opt);
   
-  std::vector<std::string> vecPngTextChunk{""};
+  std::vector<std::string> vecPngTextChunk{};
   app.add_option( "-e, --png-text-chunk", vecPngTextChunk, "list of 'tEXt' chunks in format 'keyword:text'" );
 
   std::string srcDir {};
