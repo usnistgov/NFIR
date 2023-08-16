@@ -79,7 +79,7 @@ cv::Mat filteredImgPriorToDownsample;
  *                    OUT - length of the generated, target image buffer
  * @param srcComp compression format of source image
  * @param tgtComp compression format of target image
- * @param log resample metadata for reporting to caller
+ * @param log resample-process metadata for reporting to caller
  *
  * @throw NFIR::Miscue for invalid sample rate(s), interpolation method,
  *              downsample filter shape, or cannot resize image
@@ -142,25 +142,22 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
     throw e;
   }
 
-
-
-  /* Polymorphic, single instance either Upsample or Downsample */
-  // Resample *resampler;
-  /* Polymorphic, single instance Gaussian or Ideal */
-  // FilterMask *currentFilter;
-
   cv::Mat paddedImg;
   Padding actualPadSize;
   uint8_t *tgtImageResampled;
-  std::vector<uint8_t> vecTgtImage;
+  std::vector<uint8_t> vecTgtImage, vecTgtImageNFIMM;
   std::string encComp{"."};
   std::vector<std::string> resample_metadata;
+
+  // Declare the pointers to metadata params and metadata modifier objects.
+  // NFIMM is the base class for PNG and BMP derived classes.
+  std::shared_ptr<NFIMM::MetadataParameters> mp;
+  std::unique_ptr<NFIMM::NFIMM> nfimm_mp;
 
 
   // Based on UP or DOWN sample, instantiate the proper object.
   if( tgtSampleRate > srcSampleRate )   // Upsample
   {
-    // auto resampler = new Upsample( srcSampleRate, tgtSampleRate );
     std::unique_ptr<Upsample> resampler(new Upsample( srcSampleRate, tgtSampleRate ));
     resampler->set_interpolationMethod( interpolationMethod );
 
@@ -222,54 +219,53 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
     // *tgtImage = new uint8_t[tgtImageMatrix.total()];
     // std::memcpy( *tgtImage, tgtImageMatrix.data, tgtImageMatrix.total() );
 
-
-
     if( ncSrcComp == "png" || ncSrcComp == "bmp" )
-    // if( false )
     {
-      // NFIMM (NIST Fingerprint Image Metadata Modifier library)
-      NFIMM::MetadataParameters mp( srcComp );  // tolower handled by NFIMM
-      // Initialize the NFIMM metadata params
-      mp.srcImg.resolution.horiz = srcSampleRate;
-      mp.srcImg.resolution.vert = srcSampleRate;
-      mp.set_srcImgSampleRateUnits( srUnits );
-      mp.destImg.resolution.horiz = tgtSampleRate;
-      mp.destImg.resolution.vert = tgtSampleRate;
-      mp.set_destImgSampleRateUnits( srUnits );
-      mp.destImg.textChunk = vecPngTextChunk;
-      // Finally, pick up the destination image size from the downsampled image
-      // that was encoded by Opencv::imencode(...) above.
-      mp.destImg.bufferSize = static_cast<uint32_t>(vecTgtImage.size());
-      mp.srcImg.buffer = NFIMM::NFIMM::readImageFileIntoBuffer( vecTgtImage );
-
       try
       {
-        NFIMM::NFIMM nfimm_mp( &mp );
-        nfimm_mp.modify();
+        // NFIMM (NIST Fingerprint Image Metadata Modifier library)
+        // START Create the metadata
+        mp.reset( new NFIMM::MetadataParameters( ncSrcComp ) );
+        mp->srcImg.resolution.horiz = srcSampleRate;
+        mp->srcImg.resolution.vert = srcSampleRate;
+        mp->set_srcImgSampleRateUnits( srUnits );
+        mp->destImg.resolution.horiz = tgtSampleRate;
+        mp->destImg.resolution.vert = tgtSampleRate;
+        mp->set_destImgSampleRateUnits( srUnits );
+        mp->destImg.textChunk = vecPngTextChunk;
+        // END Create the metadata
+
+        if( ncSrcComp == "bmp" )
+          nfimm_mp.reset( new NFIMM::BMP( mp ) );
+        else
+          nfimm_mp.reset( new NFIMM::PNG( mp ) );
+
+        nfimm_mp->readImageFileIntoBuffer( vecTgtImage );
+        nfimm_mp->modify();
+        nfimm_mp->retrieveWriteImageBuffer( vecTgtImageNFIMM );
         // Push the NFIMM logging data to the NFIR log
-        log.push_back( mp.to_s() );
-        for( std::string s : mp.log ) { log.push_back( s ); }
-        mp.log.clear();
+        log.push_back( mp->to_s() );
+        for( std::string s : mp->log ) { log.push_back( s ); }
+        // mp->log.clear();
       }
       catch( const NFIMM::Miscue &err ) {
         log.push_back( "NFIMM modify() failed, log prior to exception below:" );
-        log.push_back( mp.to_s() );
+        log.push_back( mp->to_s() );
         throw NFIR::Miscue( err.what() );
       }
 
       // copy the image buffer to be written to disk from NFIMM object
-      tgtImageResampled = new uint8_t[mp.destImg.bufferSize];
-      for( size_t i=0; i<mp.destImg.bufferSize; i++ ) {
-        tgtImageResampled[i] = mp.destImg.buffer[i];
+      uint64 tgtImgSize{vecTgtImageNFIMM.size()};
+      tgtImageResampled = new uint8_t[tgtImgSize];
+      for( size_t i=0; i<tgtImgSize; i++ ) {
+        tgtImageResampled[i] = vecTgtImageNFIMM[i];
       }
       *tgtImage = tgtImageResampled;
-      *imgBufSize = mp.destImg.bufferSize;
-      // copy is complete, so delete buffer in NFIMM object
-      delete [] mp.destImg.buffer;
+      *imgBufSize = tgtImgSize;
     }
     else
     {
-      // copy the image buffer to be written to disk from NFIMM object
+      // copy the image buffer to be written to disk from NFIR object
       tgtImageResampled = new uint8_t[vecTgtImage.size()];
       for( size_t i=0; i<vecTgtImage.size(); i++ ) {
         tgtImageResampled[i] = vecTgtImage.at(i);
@@ -278,11 +274,6 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
       *tgtImage = tgtImageResampled;
       *imgBufSize = vecTgtImage.size();
     }
-
-    // Clean up
-    // delete resampler;
-    // resampler = nullptr;
-
     return;
   }
 
@@ -358,51 +349,52 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
                   + std::to_string(tgtImageMatrix.channels()) );
 
     if( ncSrcComp == "png" || ncSrcComp == "bmp" )
-    // if( false )
     {
-      // NFIMM (NIST Fingerprint Image Metadata Modifier library)
-      NFIMM::MetadataParameters mp( srcComp );  // tolower handled by NFIMM
-      // Initialize the NFIMM metadata params
-      mp.srcImg.resolution.horiz = srcSampleRate;
-      mp.srcImg.resolution.vert = srcSampleRate;
-      mp.set_srcImgSampleRateUnits( srUnits );
-      mp.destImg.resolution.horiz = tgtSampleRate;
-      mp.destImg.resolution.vert = tgtSampleRate;
-      mp.set_destImgSampleRateUnits( srUnits );
-      mp.destImg.textChunk = vecPngTextChunk;
-      // Finally, pick up the destination image size from the downsampled image
-      // that was encoded by Opencv::imencode(...) above.
-      mp.destImg.bufferSize = static_cast<uint32_t>(vecTgtImage.size());
-      mp.srcImg.buffer = NFIMM::NFIMM::readImageFileIntoBuffer( vecTgtImage );
-
       try
       {
-        NFIMM::NFIMM nfimm_mp( &mp );
-        nfimm_mp.modify();
+        // NFIMM (NIST Fingerprint Image Metadata Modifier library)
+        // START Create the metadata
+        mp.reset( new NFIMM::MetadataParameters( ncSrcComp ) );
+        mp->srcImg.resolution.horiz = srcSampleRate;
+        mp->srcImg.resolution.vert = srcSampleRate;
+        mp->set_srcImgSampleRateUnits( srUnits );
+        mp->destImg.resolution.horiz = tgtSampleRate;
+        mp->destImg.resolution.vert = tgtSampleRate;
+        mp->set_destImgSampleRateUnits( srUnits );
+        mp->destImg.textChunk = vecPngTextChunk;
+        // END Create the metadata
+
+        if( ncSrcComp == "bmp" )
+          nfimm_mp.reset( new NFIMM::BMP( mp ) );
+        else
+          nfimm_mp.reset( new NFIMM::PNG( mp ) );
+
+        nfimm_mp->readImageFileIntoBuffer( vecTgtImage );
+        nfimm_mp->modify();
+        nfimm_mp->retrieveWriteImageBuffer( vecTgtImageNFIMM );
         // Push the NFIMM logging data to the NFIR log
-        log.push_back( mp.to_s() );
-        for( std::string s : mp.log ) { log.push_back( s ); }
-        mp.log.clear();
+        log.push_back( mp->to_s() );
+        for( std::string s : mp->log ) { log.push_back( s ); }
+        // mp->log.clear();
       }
       catch( const NFIMM::Miscue &err ) {
         log.push_back( "NFIMM modify() failed, log prior to exception below:" );
-        log.push_back( mp.to_s() );
+        log.push_back( mp->to_s() );
         throw NFIR::Miscue( err.what() );
       }
 
       // copy the image buffer to be written to disk from NFIMM object
-      tgtImageResampled = new uint8_t[mp.destImg.bufferSize];
-      for( size_t i=0; i<mp.destImg.bufferSize; i++ ) {
-        tgtImageResampled[i] = mp.destImg.buffer[i];
+      uint64 tgtImgSize{vecTgtImageNFIMM.size()};
+      tgtImageResampled = new uint8_t[tgtImgSize];
+      for( size_t i=0; i<tgtImgSize; i++ ) {
+        tgtImageResampled[i] = vecTgtImageNFIMM[i];
       }
       *tgtImage = tgtImageResampled;
-      *imgBufSize = mp.destImg.bufferSize;
-      // copy is complete, so delete buffer in NFIMM object
-      delete [] mp.destImg.buffer;
+      *imgBufSize = tgtImgSize;
     }
     else
     {
-      // copy the image buffer to be written to disk from NFIMM object
+      // copy the image buffer to be written to disk from NFIR object
       tgtImageResampled = new uint8_t[vecTgtImage.size()];
       for( size_t i=0; i<vecTgtImage.size(); i++ ) {
         tgtImageResampled[i] = vecTgtImage.at(i);
@@ -413,8 +405,6 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
     }
 
     // Clean up
-    // delete resampler;
-    // resampler = nullptr;
     delete currentFilter;
     currentFilter = nullptr;
   }

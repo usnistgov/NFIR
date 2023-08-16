@@ -44,9 +44,9 @@ Image files usually contain "headers" that contain image metadata. When an image
 * Source and target image format must be the same
 * Source and target image format must be either PNG or BMP (see NFIMM spec for latest formats)
 
-While it is possible for NFIR to convert image formats, NFIMM does not (yet) support conversion.
+While it is possible for NFIR to convert image formats, NFIMM does not support conversion.
 
-
+For all other image compression types, NFIR will perform the resample but NFIMM is not utilized to update the image header to reflect the target sample rate.
 
 ## NFIR Core Algorithm
 **NFIR** supports the most common source and target sample rates that are most likely encountered in the field.  By programmatically setting the default filter-mask and interpolation configurations per Tables 2 and 3, the user is "freed" from having to "guess" the best combination of parameters.

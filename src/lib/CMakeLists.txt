@@ -33,9 +33,10 @@ if(_WIN32_64)
 
   # NFIMM
   target_include_directories(${PROJECT_NAME} PRIVATE
-  D:/SourceCode/GitLab/ProjectSoftware/NFIMM_NIST/TheLibrary/NFIMM/src/include  )
-  target_link_libraries(${PROJECT_NAME} R:/NFIMM/src/lib/Release/NFIMM_ITL.lib )
-
+  D:/SourceCode/GitLab/ProjectSoftware/NFIMM_NIST/TheLibrary/Public_Release/NFIMM/src/include )
+  target_link_libraries(${PROJECT_NAME} R:/NFIMM/src/lib/Release/NFIMM.lib )
+  
+  
 else()
   message(STATUS "LIB: CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 	find_package(PkgConfig REQUIRED)

@@ -22,6 +22,9 @@ The location of the built library and executable are here:
 R:\NFIR\src\lib\Release\NFIR_ITL.lib
 R:\NFIR\src\bin\Release\NFIR_bin.exe
 ```
+## Required Support Libraries
+### NFIMM (NIST Fingerprint Image Metadata Modifier)
+The library modifies the target image header to reflect the target sample rate.  NFIMM is available here: https://github.com/usnistgov/NFIMM
 
 ### OpenCV
 For windows, it is not necessary to build the development and runtime libraries.  Navigate to https://opencv.org/releases/, click the desired version link to download the installer file, for example, `opencv-4.4.0-vc14_vc15.exe`.  Run the installer to extract the development and runtime libraries. (Optional: rename the extracted `opencv` root dir to one reflecting the OpenCV version, eg, `opencv-4.4.0`).

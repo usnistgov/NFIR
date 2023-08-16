@@ -44,16 +44,17 @@ identified are necessarily the best available for the purpose.
 
 
 /** Well known sample rate of source image */
-static int srcSampleRate{0};
+int srcSampleRate{0};
 /** Desired sample rate of generated, target image */
-static int tgtSampleRate{0};
+int tgtSampleRate{0};
 /** for the source image */
-static std::string srcPath{""};
+std::string srcPath{""};
 /** for the target (generated) image */
-static std::string tgtPath{""};
+std::string tgtPath{""};
 
-static std::string buildTargetImageFilename( const std::string, const std::string );
-static void retrieveSourceImagesList( const std::string, const std::string &, std::vector<std::string>& );
+// Forward function declarations
+std::string buildTargetImageFilename( const std::string, const std::string );
+void retrieveSourceImagesList( const std::string, const std::string &, std::vector<std::string>& );
 
 /**
  * @brief OS dependent path delimiter.
@@ -261,7 +262,7 @@ int main(int argc, char** argv)
   std::string tgtFname;
 
   vecPngTextChunk.push_back( "Description:image resamp from "
-    + std::to_string(srcSampleRate) + " by NFIRv" + NFIR::getVersion() );
+    + std::to_string(srcSampleRate) + "PPI by NFIRv" + NFIR::getVersion() );
 
   // START LOOP through all src images.
   for( auto it:listSrcImages )
@@ -288,7 +289,8 @@ int main(int argc, char** argv)
     std::cout << termcolor::blue
               << "-------------------------------------------" << std::endl;
     std::cout << "src image: " << srcPath << std::endl;
-    std::cout << "tgt image: " << tgtPath << termcolor::grey << std::endl;
+    std::cout << "tgt image: " << tgtPath
+              << termcolor::grey << std::endl;
 
     // Init NFIR resampler params.
     uint8_t* srcImageAry{NULL};       // source image data
@@ -316,6 +318,8 @@ int main(int argc, char** argv)
         std::ofstream outFile( tgtPath, std::ios::out | std::ios::binary );
         if( outFile.is_open() )
         {
+          // Note: lenSrcFileBlock contains length of the generated, target
+          // image buffer as returned from the NFIR::resample(...) call above.
           outFile.write( reinterpret_cast<char*>(*tgtImageAry), lenSrcFileBlock );
           outFile.close();
         }
@@ -353,7 +357,7 @@ int main(int argc, char** argv)
         std::cout << termcolor::grey;
         return -1;
       }
-    }
+    }   // END flagDryRun
 
     if( flagVerbose )
     {
@@ -394,6 +398,9 @@ int main(int argc, char** argv)
   return 0;
 }
 
+// -----------------------------------------------------------------------------
+// -------------- Support Functions --------------------------------------------
+// -----------------------------------------------------------------------------
 
 /**
  * @brief Supports glob operation for batch processing.
