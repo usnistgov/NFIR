@@ -8,12 +8,11 @@
                 ]},
             "includePath": [
                 "C:/MicrosoftVisualStudio/2019/Community/VC/Tools/MSVC/14.29.30037/include/**",
-                "${workspaceRoot}/src/include",
-                "${workspaceRoot}/thirdparty/szx/glob",
+                "${workspaceFolder}/**",
                 "${vcpkgRoot}/x64-windows/include",
                 "${vcpkgRoot}/x86-windows/include",
                 "D:/OpenCV/opencv-4.5.0/build/include",
-                "D:/SourceCode/GitLab/ProjectSoftware/NFIMM_NIST/refactor/NFIMM/src/include"
+                "D:/SourceCode/GitHub/ProjectSoftware/NFIMM/src/include"
             ],
             "intelliSenseMode": "msvc-x64",
             "defines": [

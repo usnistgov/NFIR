@@ -53,8 +53,8 @@ std::string srcPath{""};
 std::string tgtPath{""};
 
 // Forward function declarations
-std::string buildTargetImageFilename( const std::string, const std::string );
-void retrieveSourceImagesList( const std::string, const std::string &, std::vector<std::string>& );
+std::string buildTargetImageFilename( const std::string &, const std::string & );
+void retrieveSourceImagesList( const std::string &, const std::string &, std::vector<std::string>& );
 
 /**
  * @brief OS dependent path delimiter.
@@ -419,7 +419,7 @@ int main(int argc, char** argv)
  * @param fmt target-image filename extension
  * @return filename of target image
  */
-std::string buildTargetImageFilename( const std::string srcPath, const std::string fmt )
+std::string buildTargetImageFilename( const std::string &srcPath, const std::string &fmt )
 {
   std::string out{""};  // the string to be built to be returned
 
@@ -472,7 +472,7 @@ std::string buildTargetImageFilename( const std::string srcPath, const std::stri
  * @param fmt image compression format by filename extension
  * @param v   OUT, alphanumeric, sorted list of file paths
  */
-void retrieveSourceImagesList( const std::string dir, const std::string &fmt, std::vector<std::string> &v )
+void retrieveSourceImagesList( const std::string &dir, const std::string &fmt, std::vector<std::string> &v )
 {
   std::string globExpr =  dir + "/*." + fmt;
   glob::Glob glob(globExpr);

@@ -202,23 +202,6 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
     log.push_back( "UPSAMPLE target img num channels: "
                   + std::to_string(tgtImageMatrix.channels()) );
 
-    // tgtImageResampled = new uint8_t[vecTgtImage.size()];
-    // for( size_t i=0; i<vecTgtImage.size(); i++ ) {
-    //   tgtImageResampled[i] = vecTgtImage.at(i);
-    // }
-    // Update the function parameter for caller to use to write image.
-    // Future work: NIST Fingerprint Image Metadata Modifier. In the event
-    // that NFIMM is successfully called, this value is updated again.
-    // *tgtImage = tgtImageResampled;
-    // *imgBufSize = vecTgtImage.size();
-
-    log.push_back( "UPSAMPLE target img num channels: "
-                  + std::to_string(tgtImageMatrix.channels()) );
-
-    // Copy content of tgtImageMatrix to tgtImage
-    // *tgtImage = new uint8_t[tgtImageMatrix.total()];
-    // std::memcpy( *tgtImage, tgtImageMatrix.data, tgtImageMatrix.total() );
-
     if( ncSrcComp == "png" || ncSrcComp == "bmp" )
     {
       try
