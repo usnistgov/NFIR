@@ -1,10 +1,23 @@
 <link rel="stylesheet" href="doc/nfir.css" type="text/css" />
 
 ## Build NFIR on Windows
-Visual Studio 2017 and 2019 may be used to build the **NFIR**.  Start here to download the installer:  https://visualstudio.microsoft.com/vs/older-downloads/.
+Visual Studio 2017, 2019 and 2022 may be used to build the **NFIR**.  Start here to download the installer:  https://visualstudio.microsoft.com/vs/older-downloads/.
 
-After installation of the installer, run it to install the Visual C++ build tools including Windows 10 SDK, CMake, and Redistributable Update.  Open a `x64 Native Tools Command Prompt for VS 2019` window and navigate to the `build` directory under this distribution.  The same two commands work in Powershell.
+After installation of the installer, run it to install the Visual C++ build tools including Windows 10 SDK, CMake, and Redistributable Update.  Open a `x64 Native Tools Command Prompt for VS 20[17|19|22]` window and navigate to the `build` directory under this distribution.  The same two commands work in Powershell.
 
+### VS 2022
+```
+**********************************************************************
+** Visual Studio 2022 Developer Command Prompt v17.8.6
+** Copyright (c) 2022 Microsoft Corporation
+**********************************************************************
+
+1) X:\.\NFIR\build> cmake -S .. -B R:\NFIR -DCMAKE_CONFIGURATION_TYPES="Release" -D_WIN32_64=1
+
+2) X:\.\NFIR\build> MSBuild R:\NFIR\NFIR_ITL.sln
+```
+
+### VS 2019
 ```
 **********************************************************************
 ** Visual Studio 2019 Developer Command Prompt v16.10.3

@@ -11,16 +11,16 @@ This application is the replacement for NISTDownsampler `https://github.com/usni
 
 The **NFIR** depends on the OpenCV library for image processing and Fourier transform support.  It was tested against versions 2.4.x, 3.4.x, and 4.4.0.  It should continue to work with future versions of OpenCV.  See section "Third-Party Tools" below in this document for more info.
 
-The **NFIR** algorithm is built into a software library (file).  This accommodates the user to write their own user interface, possibly a GUI.  As a courtesy, a binary wrapper has been provided in addition to the library.  Runtime configuration data for the provided binary are read from either a configuration file or typical command-line switches.  Images may be resampled individually or by contents of a directory.
+The **NFIR** algorithm is built into a software library (file).  This accommodates the user to write their own user interface, possibly a GUI.  As a courtesy, a binary executable has been provided in addition to the library.  The executable is complete and ready to use; runtime configuration data are read from either a configuration file or typical command-line switches.  Images may be resampled individually or by contents of a directory.
 
-<span class="redc">IMPORTANT:</span> image metadata is NOT updated in the target image file and therefore will not reflect the actual sample rate of the resampled image.  It is incumbent upon the user to maintain sample rate info.  The easiest way to maintain sample rate is in the image filename, eg, `img_001-600to500ppi.png`.  Future updates to **NFIR** will include image metadata modification for png, and possibly bmp, compression formats.
+<span class="redc">IMPORTANT:</span> image metadata is updated in the target image file via the NFIMM library.  NFIMM is available here: https://github.com/usnistgov/NFIMM.  It supports only png and bmp compression.
 
 For the **NFIR** executable, runtime configuration parameters include:
 
 * source (**src**) and target (**tgt**) sample rates, Pixels per Inch (PPI) only, no metric
 * source and target image file (path) -OR- source and target image directories (source dir is globbed and target filenames are generated)
-* image file compression format (by filename extension)
-* resample interpolation (ie, resize up/down to generated target image)
+* image file compression format
+* resample interpolation (ie, resize up/down of the generated target image)
 * filter mask (downsample only)
 
 Based on the source and target sample rates, the software performs the appropriate resampling.  This ratio of (target / source) sample rate is the **resize factor**.
@@ -43,8 +43,6 @@ Image files usually contain "headers" that contain image metadata. When an image
 
 * Source and target image format must be the same
 * Source and target image format must be either PNG or BMP (see NFIMM spec for latest formats)
-
-While it is possible for NFIR to convert image formats, NFIMM does not support conversion.
 
 For all other image compression types, NFIR will perform the resample but NFIMM is not utilized to update the image header to reflect the target sample rate.
 
