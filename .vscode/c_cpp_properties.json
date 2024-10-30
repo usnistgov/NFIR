@@ -7,7 +7,7 @@
                     "${workspaceRoot}"
                 ]},
             "includePath": [
-                "C:/MicrosoftVisualStudio/2019/Community/VC/Tools/MSVC/14.29.30037/include/**",
+                "C:/MicrosoftVisualStudio/2022/Community/VC/Tools/MSVC/14.39.33519/include/**",
                 "${workspaceFolder}/**",
                 "${vcpkgRoot}/x64-windows/include",
                 "${vcpkgRoot}/x86-windows/include",

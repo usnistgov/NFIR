@@ -40,6 +40,9 @@ DOWN       | 600, 1000, and 1200 | 500
 Additionally, while <b>NFIR</b> utilizes image compression formats supported by OpenCV, <b>only images using PNG, BMP, JPG, and PGM compression have been tested.</b>
 </span>
 
+## GitHub Repository Commits
+After 30Oct2024, commit messages (-m switch) are intentionally (if not painfully) detailed.  This includes specifics on how a particular problem/issue was resolved.  For example, when the MS Visual Studio Developer Command Prompt was updated, the .vscode settings were updated accordingly.  So it may be useful to peruse the commits-history; there may be a solution for a problem you're confronting.
+
 ## NFIR and Image Headers
 Image files usually contain "headers" that contain image metadata. When an image is resampled, its resolution and overall size is changed. The metadata should be updated in the resampled target image.  **NFIR** is supported by **NFIMM** (NIST Fingerprint Image Metadata Modification) library under the following conditions:
 
