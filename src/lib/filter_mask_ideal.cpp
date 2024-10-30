@@ -31,19 +31,13 @@ identified are necessarily the best available for the purpose.
 
 namespace NFIR {
 
-// Default constructor.
-Ideal::Ideal()
-{
-  Init();
-}
-// Copy constructor.
 Ideal::Ideal( const Ideal& aCopy ) : FilterMask::FilterMask( aCopy )
 {
   Copy( aCopy );
 }
 
 /**
- * Sets the filter/mask shape to `ideal`.
+ * Sets the filter/mask type to `ideal`.
  *
  * @param srcSampleRate source image ppi to be downsampled
  * @param tgtSampleRate target image ppi of resulting image
@@ -54,14 +48,14 @@ Ideal::Ideal( int srcSampleRate, int tgtSampleRate )
   _tgtSampleRate = tgtSampleRate;
 
   _maskRadiusFactor = (float)_tgtSampleRate / (float)_srcSampleRate;
-  _filterShape = FilterShape::ideal;
+  _filterType = FilterType::ideal;
 
 }
 
 
-FilterMask::FilterShape Ideal::get_filterShape(void) const
+FilterMask::FilterType Ideal::get_filterType(void) const
 {
-  return _filterShape;
+  return _filterType;
 }
 
 /**

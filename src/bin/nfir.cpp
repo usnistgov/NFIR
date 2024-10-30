@@ -124,8 +124,8 @@ int main(int argc, char** argv)
   std::string interpolationMethod {};
   CLI::Option *im_opt = app.add_option( "-i, --interp-method", interpolationMethod, "For interpolation use [ bicubic | bilinear ]" );
 
-  std::string filterShape {};
-  CLI::Option *fs_opt = app.add_option( "-f, --downsamp-filter-shape", filterShape, "For filter use [ ideal | gaussian ]" )
+  std::string filterType {};
+  CLI::Option *fs_opt = app.add_option( "-f, --downsamp-filter-type", filterType, "For filter use [ ideal | Gaussian ]" )
     ->needs(im_opt);
   im_opt->needs(fs_opt);
 
@@ -211,7 +211,7 @@ int main(int argc, char** argv)
     std::cout << "Source image format: '" << srcImageFormat  << "'" << std::endl;
     std::cout << "Target image format: '" << tgtImageFormat  << "'" << std::endl;
     if( tgtSampleRate < srcSampleRate ) {
-      std::cout << "Downsample filter shape: '" << filterShape << "'" << std::endl;
+      std::cout << "Downsample filter type: '" << filterType << "'" << std::endl;
       std::cout << "Downsample interpolation method: '" << interpolationMethod
                 << "'" << std::endl;
     }
@@ -311,7 +311,7 @@ int main(int argc, char** argv)
       try {
         NFIR::resample( srcImageAry, tgtImageAry,
                         srcSampleRate, tgtSampleRate, "inch",
-                        interpolationMethod, filterShape,
+                        interpolationMethod, filterType,
                         &imageWidth, &imageHeight, &lenSrcFileBlock,
                         srcImageFormat, tgtImageFormat, vecPngTextChunk,
                         logRuntime );

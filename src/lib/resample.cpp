@@ -85,8 +85,8 @@ std::vector<std::string> Resample::to_s() const { std::vector<std::string> v; re
 
 // Define all the set methods.
 void Resample::set_interpolationMethod( const std::string ) { }
-void Resample::set_interpolationMethodAndFilterShape( const std::string,
-                                                      const std::string )
+void Resample::set_interpolationMethodAndFilterType( const std::string,
+                                                     const std::string )
 { }
 
 void Resample::set_srcSampleRate( const int& x )
@@ -118,7 +118,7 @@ double Resample::get_resizeFactor(void) const
   return _resizeFactor;
 }
 
-// std::string Resample::get_filterShape(void) const { std::string s{ "" }; return s; }
+// std::string Resample::get_filterType(void) const { std::string s{ "" }; return s; }
 
 // uint32_t *Resample::get_filteredImageDimens(void) const
 // {

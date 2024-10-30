@@ -33,19 +33,13 @@ static void quadrantSwap( cv::Mat );
 
 namespace NFIR {
 
-// Default constructor.
-Gaussian::Gaussian()
-{
-  Init();
-}
-// Copy constructor.
 Gaussian::Gaussian( const Gaussian& aCopy ) : FilterMask::FilterMask( aCopy )
 {
   Copy( aCopy );
 }
 
 /**
- * Calculates the filter/mask radius factor and sets the filter/mask shape
+ * Calculates the filter/mask radius factor and sets the filter/mask type
  * to `Gaussian`.
  *
  * @param srcSampleRate source image ppi to be downsampled
@@ -57,13 +51,13 @@ Gaussian::Gaussian( int srcSampleRate, int tgtSampleRate )
   _tgtSampleRate = tgtSampleRate;
 
   _maskRadiusFactor = (float)_tgtSampleRate / (float)_srcSampleRate;
-  _filterShape = FilterShape::Gaussian;
+  _filterType = FilterType::Gaussian;
 }
 
-/** @return instance shape is Gaussian */
-FilterMask::FilterShape Gaussian::get_filterShape(void) const
+/** @return instance type is Gaussian */
+FilterMask::FilterType Gaussian::get_filterType(void) const
 {
-  return _filterShape;
+  return _filterType;
 }
 
 

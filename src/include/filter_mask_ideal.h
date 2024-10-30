@@ -35,11 +35,11 @@ namespace NFIR {
 class Ideal : public FilterMask
 {
 private:
-  FilterShape _filterShape;
+  FilterType _filterType;
 
 public:
   /** @brief Default constructor never used */
-  Ideal();
+  Ideal() = delete;
 
   /** @brief Copy constructor */
   Ideal( const Ideal& );
@@ -51,7 +51,7 @@ public:
   virtual ~Ideal() {}
 
   /** @brief Getter method */
-  FilterShape get_filterShape(void) const override;
+  FilterType get_filterType(void) const override;
 
   /**
    * @brief Build the ideal filter that is same size as the padded source image

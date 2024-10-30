@@ -144,8 +144,8 @@ public:
   // Declare set methods.
   /** @brief Set upsample interpolation */
   virtual void set_interpolationMethod( const std::string );
-  /** @brief Set downsample interpolation and low-pass filter shape/type */
-  virtual void set_interpolationMethodAndFilterShape( const std::string,
+  /** @brief Set downsample interpolation and low-pass filter type */
+  virtual void set_interpolationMethodAndFilterType( const std::string,
                                                       const std::string );
   /** @brief Source image sample-rate/resolution as specified by user */
   void set_srcSampleRate( const int& );

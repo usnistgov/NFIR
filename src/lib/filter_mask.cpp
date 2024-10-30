@@ -75,11 +75,11 @@ FilterMask::FilterMask( int srcSampleRate, int tgtSampleRate )
 
 /** Methods are declared virtual and MUST be overridden in derived class.
  *
- * @return the filter shape
+ * @return the filter type
  */
-FilterMask::FilterShape FilterMask::get_filterShape(void) const
+FilterMask::FilterType FilterMask::get_filterType(void) const
 {
-  FilterMask::FilterShape fs{};
+  FilterMask::FilterType fs{};
   return fs;
 }
 

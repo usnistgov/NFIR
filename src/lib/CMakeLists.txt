@@ -18,7 +18,7 @@ if(_WIN32_64)
   message(STATUS "LIB: CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 
   # To access OpenCV, use either these two lines below:
-  include(D:/OpenCV/opencv-4.5.0/build/x64/vc15/lib/OpenCVConfig.cmake)
+  include(/YOUR-DIR-HERE/opencv-4.5.0/build/x64/vc15/lib/OpenCVConfig.cmake)
   target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
   # Or to access OpenCV, use these two lines below:
@@ -33,8 +33,8 @@ if(_WIN32_64)
 
   # NFIMM
   target_include_directories(${PROJECT_NAME} PRIVATE
-  D:/SourceCode/GitLab/ProjectSoftware/NFIMM_NIST/TheLibrary/Public_Release/NFIMM/src/include )
-  target_link_libraries(${PROJECT_NAME} R:/NFIMM/src/lib/Release/NFIMM.lib )
+  /YOUR-DIR-HERE/NFIMM/src/include )
+  target_link_libraries(${PROJECT_NAME} /YOUR-DIR-HERE/NFIMM_ITL.lib )
   
   
 else()
@@ -46,9 +46,9 @@ else()
 	target_compile_options(${PROJECT_NAME} PUBLIC ${OPENCV_CFLAGS_OTHER})
 
   target_include_directories(${PROJECT_NAME} PRIVATE
-  /YOUR-DIR-HERE/nfimm/src/include)
+  /YOUR-DIR-HERE/NFIMM/src/include)
   target_link_libraries(${PROJECT_NAME} PRIVATE
-  /YOUR-DIR-HERE/nfimm/build/src/lib//libNFIMM_ITL.a)
+  /YOUR-DIR-HERE/libNFIMM_ITL.a)
 
   message(STATUS "OPENCV_INCLUDE_DIRS found as: '${OPENCV_INCLUDE_DIRS}'")
 	message(STATUS "OPENCV_LIBRARIES found as: '${OPENCV_LINK_LIBRARIES}'")

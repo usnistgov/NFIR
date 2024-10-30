@@ -3,9 +3,11 @@
 ----------
 ## NFIR Overview
 
+**NFIR** is here: `https://github.com/usnistgov/NFIR`.
+
 **NFIR** software development is ACTIVE to continue improvements in implementation.  However, the core resampling algorithms are complete and not expected to change.
 
-The NIST Fingerprint Image Resampler **NFIR** is an algorithm that inputs a fingerprint image with some known sample rate (source) and generates a new image at a user-specified (target) sample rate.  Images may be upsampled or downsampled (hence "resampler" in its name).  To downsample without introducing high-frequency artifacts (spurious/incorrect pixel values) in the target image, the unwanted, higher frequency content in the source image is removed with a low pass filter (LPF), or mask.  The shape of the LPF-mask is elliptical to accommodate rectangular images.  By multiplying the mask with the image spectrum (frequency domain), all frequencies "inside" the elliptical mask area are retained while all "outside" are discarded.  Upsample requires no filtering.
+The NIST Fingerprint Image Resampler **NFIR** is an algorithm that inputs a fingerprint image with some known sample rate (source) and generates a new image at a user-specified (target) sample rate.  Images may be upsampled or downsampled (hence "resampler" in its name).  To downsample without introducing high-frequency artifacts (spurious/incorrect pixel values) in the target image, the unwanted, higher frequency content in the source image is removed with a low pass filter (LPF), or mask.  Regardless of the filter type, ideal or Gaussian, the shape of the LPF-mask is elliptical to accommodate rectangular images.  By multiplying the mask with the image spectrum (frequency domain), all frequencies "inside" the elliptical mask area are retained while all "outside" are discarded.  Upsample requires no filtering.
 
 This application is the replacement for NISTDownsampler `https://github.com/usnistgov/NISTDownsampler`.
 
@@ -72,8 +74,8 @@ When the target sample rate is less than the source, **NFIR** performs the `Down
 6.  Crop the new image's white-pixel padding
 7.  Reduce new image size by the resize factor; this becomes the downsampled image
 
-Depending on the resize factor, the filter/mask shape and interpolation method are configured with default settings that
-were experimentally determined, see Table 3 below.  However, it is possible to set the shape and method in the config file
+Depending on the resize factor, the filter/mask type and interpolation method are configured with default settings that
+were experimentally determined, see Table 3 below.  However, it is possible to set the type and method in the config file
 or by command-line switches.
 
 Src ppi | Tgt ppi | Filter-mask | Resize interpolation | Note |
@@ -230,15 +232,15 @@ For verification and verbose display:
 .\NFIR\bin> NFIR_bin.exe -a 600 -b 500 -s X:\images_src -t X:\images_tgt -m png -n png -y -z
 ```
 
-If either filter shape or interpolation method are specified, then BOTH must be specified, or:
+If either filter type or interpolation method are specified, then BOTH must be specified, or:
 
 ```
 .\NFIR\bin> NFIR_bin.exe -a 600 -b 500 -s ..\..\images\src\600ppi -t ..\..\images\tgt\600to500ppi -m png -n png -f ideal
---downsamp-filter-shape requires --interp-method
+--downsamp-filter-type requires --interp-method
 Run with --help for more information.
 
 .\NFIR\bin> NFIR_bin.exe -a 600 -b 500 -s ..\..\images\src\600ppi -t ..\..\images\tgt\600to500ppi -m png -n png -i bilinear
---interp-method requires --downsamp-filter-shape
+--interp-method requires --downsamp-filter-type
 Run with --help for more information.
 ```
 

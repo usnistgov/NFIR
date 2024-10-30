@@ -36,7 +36,7 @@ class Downsample : public Resample
 {
 private:
   /** @brief low pass filter ideal or Gaussian */
-  std::string _filterShape;
+  std::string _filterType;
 
 public:
   /** @brief Default constructor. Never used */
@@ -85,10 +85,10 @@ public:
   std::vector<std::string> to_s(void) const override;
 
   /**
-   * @brief Implements the recommended filter shape and interpolation method
+   * @brief Implements the recommended filter type and interpolation method
    *  if these config params not set by user.
    *
-   *  See also FilterMask::FilterShape.
+   *  See also FilterMask::FilterType.
    *
    * **IDEAL LPF, use interpolation:
    *
@@ -102,11 +102,11 @@ public:
    *     1000 to 500ppi - BICUBIC     <=== MANUAL
    *     1200 to 500ppi - BILINEAR    <=== BEST
    */
-  void set_interpolationMethodAndFilterShape( const std::string,
-                                              const std::string ) override;
+  void set_interpolationMethodAndFilterType( const std::string,
+                                             const std::string ) override;
 
-  /** @brief Get current instance filter shape */
-  std::string get_filterShape(void) const;
+  /** @brief Get current instance filter type */
+  std::string get_filterType(void) const;
 
   /** @brief This image is made available as 'optional'.
    *

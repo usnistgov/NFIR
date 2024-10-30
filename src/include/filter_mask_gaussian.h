@@ -36,11 +36,11 @@ class Gaussian : public FilterMask
 {
 private:
   /** @brief Current instance */
-  FilterShape _filterShape;
+  FilterType _filterType;
 
 public:
   /** @brief Default constructor never used */
-  Gaussian();
+  Gaussian() = delete;
 
   /** @brief Copy constructor */
   Gaussian( const Gaussian& );
@@ -52,7 +52,7 @@ public:
   virtual ~Gaussian() {}
 
   /** @brief Getter method */
-  FilterShape get_filterShape(void) const override;
+  FilterType get_filterType(void) const override;
 
   /** @brief Build the Gaussian filter upenCV Gaussian kernel generator */
   void build( cv::Size ) override;

@@ -70,7 +70,7 @@ cv::Mat filteredImgPriorToDownsample;
  * @param tgtSampleRate value must reflect srUnits
  * @param srUnits sample rate [ inch | meter | other ]
  * @param interpolationMethod [ bilinear | bicubic ]
- * @param filterShape [ ideal | Gaussian ]
+ * @param filterType [ ideal | Gaussian ]
  * @param imageWidth  IN -  width of source image,
                       OUT - width of generated, target image
  * @param imageHeight IN -  height of source image,
@@ -82,12 +82,12 @@ cv::Mat filteredImgPriorToDownsample;
  * @param log resample-process metadata for reporting to caller
  *
  * @throw NFIR::Miscue for invalid sample rate(s), interpolation method,
- *              downsample filter shape, or cannot resize image
+ *              downsample filter type, or cannot resize image
  */
 void
 resample( uint8_t *srcImage, uint8_t **tgtImage,
           int srcSampleRate, int tgtSampleRate, const std::string &srUnits,
-          const std::string &interpolationMethod, const std::string &filterShape,
+          const std::string &interpolationMethod, const std::string &filterType,
           uint32_t *imageWidth, uint32_t *imageHeight,
           size_t *imgBufSize,
           const std::string &srcComp, const std::string &tgtComp,
@@ -272,15 +272,15 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
   {
     // auto resampler = new Downsample( srcSampleRate, tgtSampleRate );
     std::unique_ptr<Downsample> resampler( new Downsample( srcSampleRate, tgtSampleRate ) );
-    resampler->set_interpolationMethodAndFilterShape( interpolationMethod,
-                                                      filterShape );
-    if( resampler->get_filterShape() == "Gaussian" )
+    resampler->set_interpolationMethodAndFilterType( interpolationMethod,
+                                                     filterType );
+    if( resampler->get_filterType() == "Gaussian" )
     {
       currentFilter = new Gaussian( srcSampleRate, tgtSampleRate );
       // currentFilter.reset( new Gaussian( srcSampleRate, tgtSampleRate ));
       currentFilter->build( paddedImg.size() );
     }
-    else if( resampler->get_filterShape() == "ideal" )
+    else if( resampler->get_filterType() == "ideal" )
     {
       currentFilter = new Ideal( srcSampleRate, tgtSampleRate );
       // currentFilter.reset( new Ideal( srcSampleRate, tgtSampleRate ));
@@ -288,8 +288,8 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
     }
     else
     {
-      throw NFIR::Miscue( "NFIR lib: invalid parameter filter shape: '"
-                         + resampler->get_filterShape() + "'");
+      throw NFIR::Miscue( "NFIR lib: invalid parameter filter type: '"
+                         + resampler->get_filterType() + "'");
     }
 
     // Now that the padded, source image and current filter/mask are available,

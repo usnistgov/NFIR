@@ -176,7 +176,7 @@ std::vector<std::string> Downsample::to_s(void) const
   v.push_back("  target sample rate:  " + std::to_string(get_tgtSampleRate()) );
   v.push_back("  resize factor:       " + std::to_string(get_resizeFactor()) );
   v.push_back("Filter & Interpolation: " + _configRecap );
-  v.push_back("  filter/mask shape:     " + _filterShape );
+  v.push_back("  filter/mask type:     " + _filterType );
   v.push_back("  interpolation method:  " + std::to_string(get_interpolationMethod())
             + "  (1=bilinear, 2=bicubic)\n" );
   return v;
@@ -184,17 +184,17 @@ std::vector<std::string> Downsample::to_s(void) const
 
 /**
  * @param im interpolation method `bicubic` or `bilinear`
- * @param fs filter shape `Gaussian` or `Ideal`
+ * @param fs filter type `Gaussian` or `ideal`
  *
- * @throw NFIR::Miscue invalid interpolation method or filter shape
+ * @throw NFIR::Miscue invalid interpolation method or filter type
  */
-void Downsample::set_interpolationMethodAndFilterShape( const std::string im, const std::string fs )
+void Downsample::set_interpolationMethodAndFilterType( const std::string im, const std::string fs )
 {
-  // Interpolation mask and filter shape BOTH specified by config.
+  // Interpolation and filter type BOTH specified by config.
   if( ( im != "" ) && ( fs != "" ) )
   {
-    _filterShape = fs;
-    _configRecap = "Filter shape and interpolation methods specified by user (per config).";
+    _filterType = fs;
+    _configRecap = "Filter type and interpolation methods specified by user (per config).";
     if( im == "bicubic" )
       _interpolationMethod = cv::INTER_CUBIC;
     else if( im == "bilinear" )
@@ -203,36 +203,36 @@ void Downsample::set_interpolationMethodAndFilterShape( const std::string im, co
       throw NFIR::Miscue( "NFIR lib: invalid interpolation method: " + im );
 
     if( fs == "ideal" )
-      _filterShape = "ideal";
+      _filterType = "ideal";
     else if( ( fs == "gaussian" ) || ( fs == "Gaussian" ) )
-      _filterShape = "Gaussian";
+      _filterType = "Gaussian";
     else
-      throw NFIR::Miscue( "NFIR lib: invalid filter shape: " + fs );
+      throw NFIR::Miscue( "NFIR lib: invalid filter type: " + fs );
   }
 
   // Set params per best experimental results.
   if( ( im == "" ) && ( fs == "" ) )
   {
-    _configRecap = "Using recommended filter shape and interpolation method.";
+    _configRecap = "Using recommended filter type and interpolation method.";
     // Set based on best experimental results
     switch ( get_srcSampleRate() ) {
       case 600:
-        _filterShape = "ideal";
+        _filterType = "ideal";
         _interpolationMethod = cv::INTER_CUBIC;
         break;
 
       case 1000:
-        _filterShape = "ideal";
+        _filterType = "ideal";
         _interpolationMethod = cv::INTER_LINEAR;
         break;
 
       case 1200:
-        _filterShape = "Gaussian";
+        _filterType = "Gaussian";
         _interpolationMethod = cv::INTER_LINEAR;
         break;
 
       default:
-        _filterShape = "ideal";
+        _filterType = "ideal";
         _interpolationMethod = cv::INTER_LINEAR;
         break;
     }
@@ -240,9 +240,9 @@ void Downsample::set_interpolationMethodAndFilterShape( const std::string im, co
 }
 
 /** @return "Gaussian" or "ideal" */
-std::string Downsample::get_filterShape(void) const
+std::string Downsample::get_filterType(void) const
 {
-  return _filterShape;
+  return _filterType;
 }
 
 }   // End namespace

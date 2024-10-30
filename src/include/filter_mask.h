@@ -39,11 +39,11 @@ class FilterMask
 {
 public:
   /**
-   * @brief Filter shapes used for downsample (only)
+   * @brief Filter types used for downsample (only)
    *
    * Ideal and Gaussian (no Butterworth).
    */
-  enum class FilterShape : unsigned
+  enum class FilterType : unsigned
   {
     ideal,
     Gaussian
@@ -82,7 +82,7 @@ public:
 
   // Override in derived class.
   /** @brief Ideal or Gaussian */
-  virtual FilterShape get_filterShape(void) const;
+  virtual FilterType get_filterType(void) const;
   /** @brief Build the filter/mask; implemented in subclass */
   virtual void build( cv::Size );
 
