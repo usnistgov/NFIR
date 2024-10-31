@@ -210,6 +210,14 @@ int main(int argc, char** argv)
     }
     std::cout << "Source image format: '" << srcImageFormat  << "'" << std::endl;
     std::cout << "Target image format: '" << tgtImageFormat  << "'" << std::endl;
+    // output the PNG text
+    if( srcImageFormat == "png" )
+    {
+      for( const auto& str : vecPngTextChunk )
+      {
+        std::cout << "  png-text-> '" << str << "'" << std::endl;
+      }
+    }
     if( tgtSampleRate < srcSampleRate ) {
       std::cout << "Downsample filter type: '" << filterType << "'" << std::endl;
       std::cout << "Downsample interpolation method: '" << interpolationMethod
@@ -223,8 +231,21 @@ int main(int argc, char** argv)
     std::cout << "Dry-run: " << std::boolalpha << flagDryRun << std::endl;
     std::cout << "Verbose mode: " << std::boolalpha << flagVerbose << std::endl;
 
+    // exit immediately if dry-run
+    if( flagDryRun )
+    {
+      std::cout << "Verify flag: " << std::boolalpha << flagVerify << std::endl;
+      exit(0);
+    }
+
     char key_press{};
     bool loooop{ true };
+    if( (srcImageFormat == "png") && (vecPngTextChunk.size() == 1) )
+    {
+      std::cout << termcolor::red
+                << "\nImage format is PNG and png-text-chunk is empty!"
+                << termcolor::grey << std::endl;
+    }
     std::cout << "\nPress y to continue, n to exit:  ";
     while( loooop )
     {
