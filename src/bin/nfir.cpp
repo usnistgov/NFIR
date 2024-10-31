@@ -309,15 +309,16 @@ int main(int argc, char** argv)
     if( !flagDryRun )
     {
       try {
-        NFIR::resample( srcImageAry, tgtImageAry,
+        // Ensure the output image file can be opened and therefore written.
+        std::ofstream outFile( tgtPath, std::ios::out | std::ios::binary );
+        if( outFile.is_open() )
+        {
+          NFIR::resample( srcImageAry, tgtImageAry,
                         srcSampleRate, tgtSampleRate, "inch",
                         interpolationMethod, filterType,
                         &imageWidth, &imageHeight, &lenSrcFileBlock,
                         srcImageFormat, tgtImageFormat, vecPngTextChunk,
                         logRuntime );
-        std::ofstream outFile( tgtPath, std::ios::out | std::ios::binary );
-        if( outFile.is_open() )
-        {
           // Note: lenSrcFileBlock contains length of the generated, target
           // image buffer as returned from the NFIR::resample(...) call above.
           outFile.write( reinterpret_cast<char*>(*tgtImageAry), lenSrcFileBlock );
@@ -352,8 +353,11 @@ int main(int argc, char** argv)
       }
       catch( const NFIR::Miscue &e ) {
         std::cout << termcolor::red << e.what() << std::endl;
-        std::cout << "NFIR runtime log prior-to this exception:" << std::endl;
-        for( auto s : logRuntime ) { std::cout << s << std::endl; }
+        if( !logRuntime.empty() )
+        {
+          std::cout << "NFIR runtime log prior-to this exception:" << std::endl;
+          for( auto s : logRuntime ) { std::cout << s << std::endl; }
+        }
         std::cout << termcolor::grey;
         return -1;
       }
