@@ -120,7 +120,7 @@ protected:
   void Copy( const Resample& );
 
 public:
-  /** @brief Default constructor never used */
+  /** @brief Default constructor never used; required as base-class */
   Resample();
 
   /** @brief Copy constructor */
@@ -146,7 +146,7 @@ public:
   virtual void set_interpolationMethod( const std::string );
   /** @brief Set downsample interpolation and low-pass filter type */
   virtual void set_interpolationMethodAndFilterType( const std::string,
-                                                      const std::string );
+                                                     const std::string );
   /** @brief Source image sample-rate/resolution as specified by user */
   void set_srcSampleRate( const int& );
   /** @brief Target image sample-rate/resolution as specified by user */

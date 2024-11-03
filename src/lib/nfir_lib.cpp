@@ -28,10 +28,13 @@ identified are necessarily the best available for the purpose.
 // #include "exceptions.h"
 #include "filter_mask_gaussian.h"
 #include "filter_mask_ideal.h"
-#include "nfimm.h"
 #include "nfir_lib.h"
 #include "resample_down.h"
 #include "resample_up.h"
+
+#ifdef USE_NFIMM
+  #include "nfimm.h"
+#endif
 
 #include <opencv2/opencv.hpp>
 
@@ -151,8 +154,10 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
 
   // Declare the pointers to metadata params and metadata modifier objects.
   // NFIMM is the base class for PNG and BMP derived classes.
+  #ifdef USE_NFIMM
   std::shared_ptr<NFIMM::MetadataParameters> mp;
   std::unique_ptr<NFIMM::NFIMM> nfimm_mp;
+  #endif
 
 
   // Based on UP or DOWN sample, instantiate the proper object.
@@ -204,6 +209,7 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
 
     if( ncSrcComp == "png" || ncSrcComp == "bmp" )
     {
+      #ifdef USE_NFIMM
       try
       {
         // NFIMM (NIST Fingerprint Image Metadata Modifier library)
@@ -245,6 +251,18 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
       }
       *tgtImage = tgtImageResampled;
       *imgBufSize = tgtImgSize;
+
+      #else
+      // copy the image buffer to be written to disk from NFIR object
+      tgtImageResampled = new uint8_t[vecTgtImage.size()];
+      for( size_t i=0; i<vecTgtImage.size(); i++ ) {
+        tgtImageResampled[i] = vecTgtImage.at(i);
+      }
+      // Update the function parameter for caller to use to write image.
+      *tgtImage = tgtImageResampled;
+      *imgBufSize = vecTgtImage.size();
+
+      #endif
     }
     else
     {
@@ -333,6 +351,7 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
 
     if( ncSrcComp == "png" || ncSrcComp == "bmp" )
     {
+      #ifdef USE_NFIMM
       try
       {
         // NFIMM (NIST Fingerprint Image Metadata Modifier library)
@@ -374,6 +393,18 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
       }
       *tgtImage = tgtImageResampled;
       *imgBufSize = tgtImgSize;
+
+      #else
+      // copy the image buffer to be written to disk from NFIR object
+      tgtImageResampled = new uint8_t[vecTgtImage.size()];
+      for( size_t i=0; i<vecTgtImage.size(); i++ ) {
+        tgtImageResampled[i] = vecTgtImage.at(i);
+      }
+      // Update the function parameter for caller to use to write image.
+      *tgtImage = tgtImageResampled;
+      *imgBufSize = vecTgtImage.size();
+
+      #endif
     }
     else
     {
@@ -405,8 +436,10 @@ printVersion()
 {
   std::string s{ "NFIR (NIST Fingerprint Image Resampler) version: " };
   s.append( NFIR_VERSION );
+  #ifdef USE_NFIMM
   s.append( "\nNIST Fingerprint Image Metadata Modifier version: "
             + NFIMM::printVersion() );
+  #endif
   s.append( "\nOpenCV version: ");
   s.append(CV_VERSION);
   return s;

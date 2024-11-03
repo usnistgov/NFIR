@@ -34,6 +34,8 @@ identified are necessarily the best available for the purpose.
 #include "nfir_lib.h"
 #include "termcolor.h"
 
+// #ifdef USE_NFIMM
+// #endif
 
 #include <chrono>
 #include <ctime>
@@ -211,6 +213,7 @@ int main(int argc, char** argv)
     std::cout << "Source image format: '" << srcImageFormat  << "'" << std::endl;
     std::cout << "Target image format: '" << tgtImageFormat  << "'" << std::endl;
     // output the PNG text
+    #ifdef USE_NFIMM
     if( srcImageFormat == "png" )
     {
       for( const auto& str : vecPngTextChunk )
@@ -218,6 +221,7 @@ int main(int argc, char** argv)
         std::cout << "  png-text-> '" << str << "'" << std::endl;
       }
     }
+    #endif
     if( tgtSampleRate < srcSampleRate ) {
       std::cout << "Downsample filter type: '" << filterType << "'" << std::endl;
       std::cout << "Downsample interpolation method: '" << interpolationMethod
@@ -230,6 +234,10 @@ int main(int argc, char** argv)
     }
     std::cout << "Dry-run: " << std::boolalpha << flagDryRun << std::endl;
     std::cout << "Verbose mode: " << std::boolalpha << flagVerbose << std::endl;
+
+    #ifndef USE_NFIMM
+    std::cout << "-- NFIMM not used --" << std::endl;
+    #endif
 
     // exit immediately if dry-run
     if( flagDryRun )

@@ -7,27 +7,37 @@
 
 **NFIR** software development is ACTIVE to continue improvements in implementation.  However, the core resampling algorithms are complete and not expected to change.
 
-The NIST Fingerprint Image Resampler **NFIR** is an algorithm that inputs a fingerprint image with some known sample rate (source) and generates a new image at a user-specified (target) sample rate.  Images may be upsampled or downsampled (hence "resampler" in its name).  To downsample without introducing high-frequency artifacts (spurious/incorrect pixel values) in the target image, the unwanted, higher frequency content in the source image is removed with a low pass filter (LPF), or mask.  Regardless of the filter type, ideal or Gaussian, the shape of the LPF-mask is elliptical to accommodate rectangular images.  By multiplying the mask with the image spectrum (frequency domain), all frequencies "inside" the elliptical mask area are retained while all "outside" are discarded.  Upsample requires no filtering.
+The NIST Fingerprint Image Resampler **NFIR** is an algorithm that inputs a fingerprint image (source) with some known sample rate and generates a new image (target) at the user-specified sample rate.  **NFIR** is capable of upsampling or downsampling (hence "resampler" in its name).
 
-This application is the replacement for NISTDownsampler `https://github.com/usnistgov/NISTDownsampler`.
+To downsample without introducing high-frequency artifacts (spurious/incorrect pixel values) in the target image, the higher frequency content in the source image is removed with a low pass filter (LPF), or mask.  Regardless of the filter type, ideal or Gaussian, the shape of the LPF is elliptical to accommodate rectangular images.  By multiplying the mask with the image spectrum (frequency domain), all frequencies "inside" the elliptical mask area are retained while all "outside" are discarded.  Upsample requires no filtering.
 
-The **NFIR** depends on the OpenCV library for image processing and Fourier transform support.  It was tested against versions 2.4.x, 3.4.x, and 4.4.0.  It should continue to work with future versions of OpenCV.  See section "Third-Party Tools" below in this document for more info.
+**NFIR** is the replacement for NISTDownsampler `https://github.com/usnistgov/NISTDownsampler`.
 
-The **NFIR** algorithm is built into a software library (file).  This accommodates the user to write their own user interface, possibly a GUI.  As a courtesy, a binary executable has been provided in addition to the library.  The executable is complete and ready to use; runtime configuration data are read from either a configuration file or typical command-line switches.  Images may be resampled individually or by contents of a directory.
+## Software Updates
+* **NFIMM** is now optional, build default is ON
+  - to build without **NFIMM**, set CMakeLists.txt file `option(USE_NFIMM "Enable NFIMM" OFF)`
+* improved target filename convention
+* improved executable prompts and exception handling
 
-<span class="redc">IMPORTANT:</span> image metadata is updated in the target image file via the NFIMM library.  NFIMM is available here: https://github.com/usnistgov/NFIMM.  It supports only png and bmp compression.
+## Details
+**NFIR** requires the OpenCV library for image processing and Fourier transform support.  It was tested against versions 2.4.x, 3.4.x, and 4.4.0.  It should continue to work with future versions of OpenCV.  See section "Third-Party Tools" below in this document for more info.
+
+**NFIR** is optionally supported by the **NFIMM** library for image metadata modification.  **NFIMM** is available here: https://github.com/usnistgov/NFIMM; it supports only png and bmp compressed images.
+
+The **NFIR** resample-algorithm is built into a software library (file).  This accommodates the user to write their own user interface.  However, an executable has been provided in addition to the library.  The executable is complete and ready to use; runtime configuration data are read from either a configuration file or typical command-line switches.  Images may be resampled individually or by directory.
 
 For the **NFIR** executable, runtime configuration parameters include:
 
 * source (**src**) and target (**tgt**) sample rates, Pixels per Inch (PPI) only, no metric
 * source and target image file (path) -OR- source and target image directories (source dir is globbed and target filenames are generated)
 * image file compression format
-* resample interpolation (ie, resize up/down of the generated target image)
-* filter mask (downsample only)
+* image resize interpolation (bilinear/bicubic)
+* filter mask (downsample only, ideal or Gaussian)
+* PNG metadata
 
-Based on the source and target sample rates, the software performs the appropriate resampling.  This ratio of (target / source) sample rate is the **resize factor**.
+Based on the source and target sample rates, the software performs the appropriate resizing.  This ratio of (target / source) sample rate is the **resize-factor**.  Obviously, a resize-factor < 1 implies downsampling.
 
-Any valid and reasonable source and target sample rate is accepted.  The initial release and subsequent revisions of this software was only tested on source images with the source and target sample rates in Table 1; it has since been proven to perform correctly using any sample rates (source image sample rate must be well-known).
+Any valid and reasonable source and target sample rate is accepted.  The initial release of this software was only tested on source images with the source and target sample rates in Table 1; it has since been proven to perform correctly using any sample rates (source image sample rate must be well-known).
 
 Resampling | Src ppi             | Tgt ppi
 -----------|---------------------|-----------
@@ -75,9 +85,9 @@ When the target sample rate is less than the source, **NFIR** performs the `Down
 4.  Multiply the image-spectrum by the "shifted" filter mask to generate the filtered spectrum
 5.  Invoke the inverse fourier transform on the filtered spectrum (this generates a space-domain image)
 6.  Crop the new image's white-pixel padding
-7.  Reduce new image size by the resize factor; this becomes the downsampled image
+7.  Reduce new image size by the resize-factor; this becomes the downsampled image
 
-Depending on the resize factor, the filter/mask type and interpolation method are configured with default settings that
+Depending on the resize-factor, the filter/mask type and interpolation method are configured with default settings that
 were experimentally determined, see Table 3 below.  However, it is possible to set the type and method in the config file
 or by command-line switches.
 
