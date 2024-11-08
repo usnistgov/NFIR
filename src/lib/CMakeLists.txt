@@ -1,7 +1,7 @@
 
 project(${PROJECT_NAME})
 
-# option(USE_NFIMM "Enable NFIMM" ON)
+option(USE_NFIMM "Enable NFIMM" ON)
 
 FILE(GLOB sources ${CMAKE_CURRENT_SOURCE_DIR}/*.cpp)
 add_library( ${PROJECT_NAME} ${sources} )
@@ -19,12 +19,8 @@ if(_WIN32_64)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /WX")
   message(STATUS "LIB: CMAKE_CXX_FLAGS: ${CMAKE_CXX_FLAGS}")
 
-  if(USE_NFIMM)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE USE_NFIMM)
-  endif()
-
   # To access OpenCV, use either these two lines below:
-  include(/YOUR-DIR-HERE/opencv-4.5.0/build/x64/vc15/lib/OpenCVConfig.cmake)
+  include(D:/OpenCV/opencv-4.5.0/build/x64/vc15/lib/OpenCVConfig.cmake)
   target_link_libraries(${PROJECT_NAME} ${OpenCV_LIBS})
 
   # Or to access OpenCV, use these two lines below:
@@ -38,10 +34,10 @@ if(_WIN32_64)
   target_include_directories(${PROJECT_NAME} PRIVATE ${OpenCV_INCLUDE_DIRS} )
 
   if(USE_NFIMM)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC USE_NFIMM)
     target_include_directories(${PROJECT_NAME} PRIVATE
     /YOUR-DIR-HERE/NFIMM/src/include )
-    target_link_libraries(${PROJECT_NAME} PRIVATE
-    R:/NFIMM_ITL/src/lib/Release/NFIMM_ITL.lib)
+    target_link_libraries(${PROJECT_NAME} R:/NFIMM_ITL/src/lib/Release/NFIMM_ITL.lib)
   endif()
   
 else()
@@ -53,10 +49,10 @@ else()
 	target_compile_options(${PROJECT_NAME} PUBLIC ${OPENCV_CFLAGS_OTHER})
 
   if(USE_NFIMM)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC USE_NFIMM)
     target_include_directories(${PROJECT_NAME} PRIVATE
     /YOUR-DIR-HERE/NFIMM/src/include)
-    target_link_libraries(${PROJECT_NAME} PRIVATE
-    /YOUR-DIR-HERE/libNFIMM_ITL.a)
+    target_link_libraries(${PROJECT_NAME} /YOUR-DIR-HERE/libNFIMM_ITL.a)
   endif()
 
   message(STATUS "OPENCV_INCLUDE_DIRS found as: '${OPENCV_INCLUDE_DIRS}'")

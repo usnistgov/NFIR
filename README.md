@@ -163,6 +163,25 @@ Open a command prompt (terminal), change to the `bin` dir, and run:
 .\NFIR\bin> NFIR_bin.exe -h
 ```
 
+Since NFIMM is optional, the `-v` switch reflects if NFIMM is enabled; if it is, then the NFIMM version info is included in the output message.  Otherwise it is omitted.
+
+Below are examples.
+
+NFIMM ON:
+```
+.\NFIR\bin> NFIR_bin.exe -v
+NFIR (NIST Fingerprint Image Resampler) version: 0.2.0
+NIST Fingerprint Image Metadata Modifier version: NFIMMv0.1.1
+OpenCV version: 4.5.0
+```
+
+NFIMM OFF:
+```
+.\NFIR\bin> NFIR_bin.exe -v
+NFIR (NIST Fingerprint Image Resampler) version: 0.2.0
+OpenCV version: 4.5.0
+```
+
 In the event of a runtime error due to "missing MSVCP140.dll," which is a Microsoft Visual C++ redistributable library, download from `https://www.microsoft.com/en-us/download/details.aspx?id=48145` and run the `.\MSVC_2015\vc_redist.x64.exe` to install it.  If there is still a problem, install the 32-bit version.
 
 |NOTE|

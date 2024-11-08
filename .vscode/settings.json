@@ -1,5 +1,5 @@
 {
-  "C_Cpp.default.compilerPath": "c:\\MicrosoftVisualStudio\\2022\\Community\\VC\\Tools\\MSVC\\14.39.33519\\bin\\Hostx64\\x64\\cl.exe",
+  "C_Cpp.default.compilerPath": "c:\\MicrosoftVisualStudio\\2022\\Community\\VC\\Tools\\MSVC\\14.41.34120\\bin\\Hostx64\\x64\\cl.exe",
   "files.associations": {
     "xstring": "cpp",
     "vector": "cpp",

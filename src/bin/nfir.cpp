@@ -248,11 +248,12 @@ int main(int argc, char** argv)
 
     char key_press{};
     bool loooop{ true };
-    if( (srcImageFormat == "png") && (vecPngTextChunk.size() == 1) )
+    if( (srcImageFormat == "png") && (vecPngTextChunk[0] == "") )
     {
       std::cout << termcolor::red
-                << "\nImage format is PNG and png-text-chunk is empty!"
+                << "\nImage format is PNG and png-text-chunk cannot be empty!"
                 << termcolor::grey << std::endl;
+      exit(0);
     }
     std::cout << "\nPress y to continue, n to exit:  ";
     while( loooop )
