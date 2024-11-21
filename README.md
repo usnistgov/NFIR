@@ -163,7 +163,7 @@ Open a command prompt (terminal), change to the `bin` dir, and run:
 .\NFIR\bin> NFIR_bin.exe -h
 ```
 
-Since NFIMM is optional, the `-v` switch reflects if NFIMM is enabled; if it is, then the NFIMM version info is included in the output message.  Otherwise it is omitted.
+Since NFIMM is optional, the `-v` switch reflects if NFIMM is enabled; if it is, then the NFIMM version info is included in the output message.
 
 Below are examples.
 
@@ -171,7 +171,7 @@ NFIMM ON:
 ```
 .\NFIR\bin> NFIR_bin.exe -v
 NFIR (NIST Fingerprint Image Resampler) version: 0.2.0
-NIST Fingerprint Image Metadata Modifier version: NFIMMv0.1.1
+NIST Fingerprint Image Metadata Modifier version: NFIMMv0.1.2
 OpenCV version: 4.5.0
 ```
 
@@ -190,7 +190,7 @@ In the event of a runtime error due to "missing MSVCP140.dll," which is a Micros
 
 To ensure that the runtime configuration parameters are correct, use the `-y,--verify` command-line switch to print them to the console.  Answer the prompt to either continue or exit.
 
-When source is a directory, the target filename is built by appending the resample "rate" info to the source filename, for example, `src_fname.png` -> `src_fname-600to500ppi.png`.
+When source is a directory, the target filename is built by appending the resample-rate info to the source filename, for example, `src_fname.png` -> `src_fname__NFIR_0600_to_0500ppi.png`.
 
 Verbose mode prints file path and current count to screen.  This is also useful in combination with `--dry-run`.
 

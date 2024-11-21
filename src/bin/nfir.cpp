@@ -34,12 +34,8 @@ identified are necessarily the best available for the purpose.
 #include "nfir_lib.h"
 #include "termcolor.h"
 
-// #ifdef USE_NFIMM
-// #endif
-
 #include <chrono>
 #include <ctime>
-#include <regex>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -108,7 +104,8 @@ int main(int argc, char** argv)
     ->needs(sf_opt);
   
   std::vector<std::string> vecPngTextChunk{};
-  app.add_option( "-e, --png-text-chunk", vecPngTextChunk, "list of 'tEXt' chunks in format 'keyword:text'" );
+  app.add_option( "-e, --png-text-chunk", vecPngTextChunk, "list of 'tEXt' chunks in format 'keyword:text', "
+                  "see config.ini file for more txt-chunk details" );
 
   std::string srcDir {};
   app.add_option( "-s, --src-dir", srcDir, "Source imagery dir (absolute or relative)" )
@@ -248,13 +245,15 @@ int main(int argc, char** argv)
 
     char key_press{};
     bool loooop{ true };
-    if( (srcImageFormat == "png") && (vecPngTextChunk[0] == "") )
+    #ifdef USE_NFIMM
+    if( (srcImageFormat == "png") && (vecPngTextChunk.empty()) )
     {
       std::cout << termcolor::red
-                << "\nImage format is PNG and png-text-chunk cannot be empty!"
+                << "\nNFIMM enabled and png-text-chunk param is missing or misconfigured"
                 << termcolor::grey << std::endl;
       exit(0);
     }
+    #endif
     std::cout << "\nPress y to continue, n to exit:  ";
     while( loooop )
     {
@@ -291,8 +290,10 @@ int main(int argc, char** argv)
   std::time_t startTime = std::chrono::system_clock::to_time_t( startStamp );
   std::string tgtFname;
 
+  #ifdef USE_NFIMM
   vecPngTextChunk.push_back( "Description:image resamp from "
     + std::to_string(srcSampleRate) + "PPI by NFIRv" + NFIR::getVersion() );
+  #endif
 
   // START LOOP through all src images.
   for( auto it:listSrcImages )
@@ -437,17 +438,17 @@ int main(int argc, char** argv)
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Supports glob operation for batch processing.
+ * @brief Supports glob operation for source images in directory.
  * 
- * The target filename is based purely on the source filename. The only "change"
- * that is made is that the source sample rate is replaced by:
- *   "SRCRATEtoTGTRATE".
+ * The target filename is built by appending the original-filename with the
+ * following:
+ *    __NFIR_[src-samp-rate]ppi_to_[tgt-samp-rate]ppi
  *
  * EXAMPLE:
  *
- * src: A0001_10P_E01_300PPI.jpg
+ * src: A0001_10P_E01_600PPI.jpg
  *
- * tgt: A0001_10P_E01_0300to0500PPI.png  <-- note (allowable/configurable) change in extension
+ * tgt: A0001_10P_E01_600PPI__NFIR_0600ppi_to_0500ppi.jpg
  *
  * @param srcPath path of source image
  * @param fmt target-image filename extension
@@ -455,17 +456,7 @@ int main(int argc, char** argv)
  */
 std::string buildTargetImageFilename( const std::string &srcPath, const std::string &fmt )
 {
-  std::string out{""};  // the string to be built to be returned
-
-  // Prep the regex search expression per the source sample rate (via config param).
-  // Just for case that source sample rate *might* be preceeded by zero, one, or more
-  // leading zeroes, use reg-exp search to find the substring that will be replaced
-  // by the "FROMtoTO" string (local variable resampStr).
-  std::string rxStr{ "\\d*" };
-  rxStr.append( std::to_string( srcSampleRate ) );
-  rxStr.append( "ppi");   // sample rate MUST be followed immediately by [PPI | ppi].
-  std::regex rx( rxStr, std::regex_constants::ECMAScript | std::regex_constants::icase );
-  std::smatch matchResult;
+  std::string out{};  // the string to be built to be returned
 
   // Parse the base filename of the source from the full PATH.
   size_t found;
@@ -486,12 +477,9 @@ std::string buildTargetImageFilename( const std::string &srcPath, const std::str
   // Build the "from-to" string.
   std::string resampStr = srcSampleRateStr + "to" + tgtSampleRateStr + "PPI";
 
-  // Search for the source sample rate and replace with the "from-to" string.
-  std::regex_search( bname, matchResult, rx );
-  bname.replace( bname.find( matchResult[0] ), matchResult[0].length(), resampStr );
-
-  out = separator() + bname + "." + fmt;
-
+  out = separator() + bname + "__NFIR_"
+                    + srcSampleRateStr + "ppi_to_"
+                    + tgtSampleRateStr + "ppi." + fmt;
   return out;
 }
 

@@ -4,25 +4,41 @@ Build output may be redirected to any convenient dir by utilizing the '-B' switc
 For the Windows examples below, build output is redirected to RAMDRIVE (R:\).  A nice tool to create RAMDRIVE for
 Windows is OFSMount (osforensics.com).
 
-Open a PowerShell terminal, create and change-to the 'build' subdir, and run:
+Modify CMakeLists:
+First, in file ./src/lib/CMakeLists.txt, enable or disable NFIMM (ON by default):
+ * option(USE_NFIMM "Enable NFIMM" [ON|OFF])
+
+Second, in file ./src/lib/CMakeLists.txt, replace the text 'YOUR-DIR-HERE' with:
+ * include-path to OpenCVConfig.cmake
+ * directory-path to NFIMM target-include and target-link parameters.
+
+Ready to build:
+Open a ** Visual Studio 2022 Developer Command Prompt v17.11.4 **  terminal, create and change-to the 'build' subdir,
+and run:
 
 .\NFIR\build> cmake -S .. -B R:\NFIR -DCMAKE_CONFIGURATION_TYPES="Release" -D_WIN32_64=1
 .\NFIR\build> MSBuild R:\NFIR\NFIR_ITL.sln
 
-Library files are located here on successful build:
+Library and executable are located here on successful build:
 R:\NFIR\src\lib\Release\NFIR_ITL.lib
 R:\NFIR\src\bin\Release\NFIR_bin.exe
 
 
 ## Linux
-First, in file ./src/lib/CMakeLists.txt, replace the text 'YOUR-DIR-HERE' with
-the directory-path to NFIMM target-include and target-link parameters.
+Modify CMakeLists:
+First, in file ./src/lib/CMakeLists.txt, enable or disable NFIMM (ON by default):
+ * option(USE_NFIMM "Enable NFIMM" [ON|OFF])
 
-Then, in a terminal, create and change-to the 'build' subdir, and run:
+Second, in file ./src/lib/CMakeLists.txt, replace the text 'YOUR-DIR-HERE' with:
+ * include-path to OpenCVConfig.cmake
+ * directory-path to NFIMM target-include and target-link parameters.
+
+Ready to build:
+Open a terminal, create and change-to the 'build' subdir, and run:
 
 ./NFIR/build$ cmake ..
 ./NFIR/build$ make
 
-Library files are located here on successful build:
+Library and executable are located here on successful build:
 ./src/bin/NFIR_bin
 ./src/lib/libNFIR_ITL.a
