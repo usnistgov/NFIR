@@ -25,7 +25,7 @@ identification imply recommendation or endorsement by the National Institute
 of Standards and Technology, nor does it imply that the products and equipment
 identified are necessarily the best available for the purpose.
 *******************************************************************************/
-#ifdef _WIN32
+#ifdef _WIN32_64
   #pragma warning(disable : 4996)  // 'ctime': This function or variable may be unsafe. Consider using ctime_s instead.
 #endif
 
@@ -35,6 +35,9 @@ identified are necessarily the best available for the purpose.
 #include "termcolor.h"
 
 #include <chrono>
+#ifndef _WIN32_64
+#include <cstring>
+#endif
 #include <ctime>
 #include <stdexcept>
 #include <string>
@@ -56,7 +59,7 @@ void retrieveSourceImagesList( const std::string &, const std::string &, std::ve
 
 /**
  * @brief OS dependent path delimiter.
- * 
+ *
  * @return char '/' or '\'
  */
 inline char separator()
@@ -80,7 +83,7 @@ inline char separator()
  *
  * For downsample, each image lowpass filter is unique.
  */
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
   CLI::App app{"Upsample, downsample images with known ppi. Command line options override config(.ini) file settings."};
 
@@ -102,7 +105,7 @@ int main(int argc, char** argv)
   std::string tgtFile {};
   app.add_option( "-d, --tgt-file", tgtFile, "Target imagery file (absolute or relative)" )
     ->needs(sf_opt);
-  
+
   std::vector<std::string> vecPngTextChunk{};
   app.add_option( "-e, --png-text-chunk", vecPngTextChunk, "list of 'tEXt' chunks in format 'keyword:text', "
                   "see config.ini file for more txt-chunk details" );
@@ -334,7 +337,7 @@ int main(int argc, char** argv)
 
     // Copy the file stream into memory for resampler call.
     srcImageAry = new uint8_t[lenSrcFileBlock];
-    std::memcpy( srcImageAry, srcFileMemBlock, lenSrcFileBlock );
+    memcpy( srcImageAry, srcFileMemBlock, lenSrcFileBlock );
 
 
     if( !flagDryRun )
@@ -439,7 +442,7 @@ int main(int argc, char** argv)
 
 /**
  * @brief Supports glob operation for source images in directory.
- * 
+ *
  * The target filename is built by appending the original-filename with the
  * following:
  *    __NFIR_[src-samp-rate]ppi_to_[tgt-samp-rate]ppi
@@ -510,5 +513,5 @@ void retrieveSourceImagesList( const std::string &dir, const std::string &fmt, s
     glob.Next();
   }
 
-  std::sort( v.begin(), v.end() ); 
+  std::sort( v.begin(), v.end() );
 }

@@ -30,7 +30,6 @@ First, in file ./src/lib/CMakeLists.txt, enable or disable NFIMM (ON by default)
  * option(USE_NFIMM "Enable NFIMM" [ON|OFF])
 
 Second, in file ./src/lib/CMakeLists.txt, replace the text 'YOUR-DIR-HERE' with:
- * include-path to OpenCVConfig.cmake
  * directory-path to NFIMM target-include and target-link parameters.
 
 Ready to build:
