@@ -1,0 +1,92 @@
+
+D:\SourceCode\GitHub\ProjectSoftware\NFIR\build\src\bin\Release>NFIR_bin.exe -u D:\HIGH_RESOLUTION_SCAN_TEST\FRICR\image_scans\source\1365187\NFIR\config\config_NFIR__04000PPI_scan_8BPP_1CH.ini
+NFIR (NIST Fingerprint Image Resampler) version: 0.2.0
+NIST Fingerprint Image Metadata Modifier version: NFIMMv0.1.2
+OpenCV version: 4.5.0
+
+  *** Verify runtime parameters ***
+Source sample rate: '4000'
+Target sample rate: '500'
+Source image file: 'D:\HIGH_RESOLUTION_SCAN_TEST\FRICR\image_scans\source\1365187\FRICR_1365187_V700_04000PPI_scan_8BPP_1CH.png'
+Target image file: 'D:\HIGH_RESOLUTION_SCAN_TEST\FRICR\image_scans\source\1365187\NFIR\downsamp\00500\ideal\bilinear\FRICR_1365187_V700_04000to00500PPI_ideal_bilinear.png'
+Source image format: 'png'
+Target image format: 'png'
+  png-text-> 'Comment:downsample ideal LPF, bilinear resize interpolation'
+  png-text-> 'Comment:orignal scanner version V700'
+  png-text-> 'Author:NIST-ITL'
+  png-text-> 'Creation Time:file'
+Downsample filter type: 'ideal'
+Downsample interpolation method: 'bilinear'
+Dry-run: false
+Verbose mode: true
+
+Press y to continue, n to exit:  y
+-------------------------------------------
+src image: D:\HIGH_RESOLUTION_SCAN_TEST\FRICR\image_scans\source\1365187\FRICR_1365187_V700_04000PPI_scan_8BPP_1CH.png
+tgt image: D:\HIGH_RESOLUTION_SCAN_TEST\FRICR\image_scans\source\1365187\NFIR\downsamp\00500\ideal\bilinear\FRICR_1365187_V700_04000to00500PPI_ideal_bilinear.png
+OpenCV: terminate handler is called! The last OpenCV error is:
+OpenCV(4.5.0) Error: Assertion failed (pixels <= CV_IO_MAX_IMAGE_PIXELS) in cv::validateInputImageSize, file C:\build\master_winpack-build-win64-vc15\opencv\modules\imgcodecs\src\loadsave.cpp, line 77
+
+
+OpenCV can change its behavior depending on the runtime environment:
+
+* enable extra debugging output or performance tracing
+* modify default locations and search paths
+* tune some algorithms or general behavior
+* enable or disable workarounds, safety features and optimizations
+
+
+The size of the 4000ppi image is 1,590,370,908 ( 33,991 width X 46,788height) pixels.
+
+
+Therefore, set the EVNIRONMENT VARIABLE as below at the prompt where NFIR_bin.exe is executed.
+D:\SourceCode\GitHub\ProjectSoftware\NFIR\build\src\bin\Release>set OPENCV_IO_MAX_IMAGE_PIXELS=1590370910   <======
+
+The command below took about 5 hours to run before it threw the 'out of memory' ERROR.
+D:\SourceCode\GitHub\ProjectSoftware\NFIR\build\src\bin\Release>NFIR_bin.exe -u D:\HIGH_RESOLUTION_SCAN_TEST\FRICR\image_scans\source\1365187\NFIR\config\config_NFIR__04000PPI_scan_8BPP_1CH.ini
+NFIR (NIST Fingerprint Image Resampler) version: 0.2.0
+NIST Fingerprint Image Metadata Modifier version: NFIMMv0.1.2
+OpenCV version: 4.5.0
+
+  *** Verify runtime parameters ***
+Source sample rate: '4000'
+Target sample rate: '500'
+Source image file: 'D:\HIGH_RESOLUTION_SCAN_TEST\FRICR\image_scans\source\1365187\FRICR_1365187_V700_04000PPI_scan_8BPP_1CH.png'
+Target image file: 'D:\HIGH_RESOLUTION_SCAN_TEST\FRICR\image_scans\source\1365187\NFIR\downsamp\00500\ideal\bilinear\FRICR_1365187_V700_04000to00500PPI_ideal_bilinear.png'
+Source image format: 'png'
+Target image format: 'png'
+  png-text-> 'Comment:downsample ideal LPF, bilinear resize interpolation'
+  png-text-> 'Comment:orignal scanner version V700'
+  png-text-> 'Author:NIST-ITL'
+  png-text-> 'Creation Time:file'
+Downsample filter type: 'ideal'
+Downsample interpolation method: 'bilinear'
+Dry-run: false
+Verbose mode: true
+
+Press y to continue, n to exit:  y
+-------------------------------------------
+src image: D:\HIGH_RESOLUTION_SCAN_TEST\FRICR\image_scans\source\1365187\FRICR_1365187_V700_04000PPI_scan_8BPP_1CH.png
+tgt image: D:\HIGH_RESOLUTION_SCAN_TEST\FRICR\image_scans\source\1365187\NFIR\downsamp\00500\ideal\bilinear\FRICR_1365187_V700_04000to00500PPI_ideal_bilinear.png
+CALL CALL CALL imdecode
+NFIR Exception: NFIR lib: Downsample failed resize(): OpenCV(4.5.0) C:\build\master_winpack-build-win64-vc15\opencv\modules\core\src\alloc.cpp:73: error: (-4:Insufficient memory) Failed to allocate 12960276480 bytes in function 'cv::OutOfMemoryError'
+
+NFIR runtime log prior-to this exception:
+SRC img std::vector size: 486126266
+SRC img cv::matrix size: 1590370908
+SRC img WxH: 33991x46788
+SRC img bit depth: 8-bit unsigned ints (0..255)
+SRC img num channels: 1
+SRC IMG converted to single-channel: FALSE
+Image Padding: top  : 0, left : 0, bot  : 88, right: 569
+
+>> START DOWNSAMPLE (resampler) metadata:
+DOWNSAMPLE configuration:
+  source sample rate:  4000
+  target sample rate:  500
+  resize factor:       0.125000
+Filter & Interpolation: Filter type and interpolation methods specified by user (per config).
+  filter/mask type:     ideal
+  interpolation method:  1  (1=bilinear, 2=bicubic)
+
+>> END DOWNSAMPLE (resampler) metadata

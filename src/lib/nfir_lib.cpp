@@ -105,6 +105,7 @@ resample( uint8_t *srcImage, uint8_t **tgtImage,
   }
 
   cv::Mat srcImageMtx;
+  cv::setUseOptimized(false);
   cv::Mat tmpImageMtx = cv::imdecode( cv::Mat(vecSrcImg), cv::IMREAD_UNCHANGED );
   log.push_back( "SRC img std::vector size: " + std::to_string(vecSrcImg.size()) );
   log.push_back( "SRC img cv::matrix size: "
